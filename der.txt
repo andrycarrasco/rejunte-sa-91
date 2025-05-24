@@ -1,0 +1,246 @@
+@startuml
+skinparam linetype ortho
+hide circle
+skinparam shadowing false
+
+' Entidades principales
+entity "Pedido" {
+  + numero : decimal(9) [PK]
+  --
+  sucursal : integer(8) [FK]
+  cliente : bigint(8) [FK]
+  fecha : datetime2(8)
+  total : decimal(9)
+  estado : nvarchar(255)
+}
+
+entity "Sucursal" {
+  + NroSucursal : bigint(8) [PK]
+  --
+  datos_contacto : bigint(8) [FK]
+  numero_localidad : bigint(8) [FK]
+}
+
+entity "Cliente" {
+  + idCliente : bigint(8) [PK]
+  --
+  DNI : bigint(8) [unique]
+  nombre : nvarchar(255)
+  apellido : nvarchar(255)
+  fechaNac : datetime2(8)
+  direccion : bigint(8)
+  datos_contacto : bigint(8) [FK]
+  num_localidad : bigint(8) [FK]
+}
+
+entity "DatosContacto" {
+  + id_datos : bigint(8) [PK]
+  --
+  telefono : bigint(8)
+  mail : bigint(8)
+}
+
+entity "Localidad" {
+  +numero : bigint(8) [PK]
+  +num_provincia : bigint(8) [PK]
+  --
+  nombre : nvarchar(255)
+}
+
+entity "Provincia" {
+  +numero : bigint(8) [PK]
+  nombre : nvarchar(255)
+}
+
+' Entidades de transacción
+entity "Factura" {
+  + numero : bigint(8) [PK]
+  --
+  cliente : integer(8) [FK]
+  sucursal : bigint(8) [FK]
+  fecha : datetime2(8)
+  total : decimal(17)
+}
+
+entity "Envio" {
+  + numero : bigint(8) [PK]
+  --
+  factura_numero : bigint(8) [FK]
+  fecha_programada : datetime2(8)
+  fecha_entrega : date
+  importe_traslado : decimal(9)
+  importe_subida : decimal(9)
+}
+
+' Entidades de productos
+entity "Sillon" {
+  + id_sillon : bigint(8) [PK]
+  --
+  codigo_modelo : bigint(8)
+  codigo_medida : bigint(8)
+  composicion_material : bigint(8) [FK]
+}
+
+entity "sillon_modelo" {
+  + codigo : bigint(8) [PK]
+  --
+  modelo : nvarchar(255)
+  descripcion : nvarchar(255)
+  precio : decimal(9)
+}
+
+entity "sillon_medida" {
+  + codigo : bigint(8) [PK]
+  --
+  alto : decimal(9)
+  ancho : decimal(9)
+  profundidad : decimal(9)
+  precio : decimal(9)
+}
+
+' Entidades de materiales
+entity "Material" {
+  + id_material : bigint(8) [PK]
+  --
+  nombre : nvarchar(255)
+  descripcion : nvarchar(255)
+  precio : decimal(17)
+  id_material_tipo : bigint(8) [PK]
+}
+
+entity "MaterialTipo" {
+  + id_material_tipo : bigint(8) [PK]
+  --
+  nombre : nvarchar(255)
+}
+
+entity "Color" {
+  + id_color : bigint(8) [PK]
+  --
+  nombre : nvarchar(255)
+}
+
+entity "Tela" {
+  + id_tela : bigint(8) [PK]
+  --
+  id_material : bigint(8) [FK]
+  id_color : nvarchar(255)
+  tela_textura : nvarchar(255)
+}
+
+entity "Relleno" {
+  + id_relleno : bigint(8) [PK]
+  --
+  id_material : bigint(8) [FK]
+  relleno_densidad : decimal(17)
+}
+
+entity "Madera" {
+  + id_madera : bigint(8) [PK]
+  --
+  id_material : bigint(8) [FK]
+  id_color : nvarchar(255)
+  madera_dureza : nvarchar(255)
+}
+
+
+' Entidades de compras
+entity "Compra" {
+  + numero : decimal(9) [PK]
+  --
+  numero_sucursal : bigint(8) [FK]
+  numero_proveedor : bigint(8) [FK]
+  fecha : datetime2(8)
+  total : decimal(9)
+}
+
+entity "Proveedor" {
+  + id : bigint(8) [PK]
+  --
+  razon_social : nvarchar(255)
+  cuit : nvarchar(255)
+  direccion : nvarchar(255)
+  datos_contacto : bigint(8) [FK]
+  num_localidad : bigint(8) [FK]
+}
+
+' Entidades de relación
+entity "DetallePedido" {
+  + numero : bigint(8)
+  --
+  pedido : decimal(9) [FK]
+  cantidad : bigint(8)
+  precio : decimal(9)
+  subtotal : decimal(9)
+  codigo_sillon: bigiint(8) [FK]
+}
+
+entity "DetalleFactura" {
+  + det_pedido : bigint(8) [FK]
+  --
+  precio : decimal(9)
+  cantidad : decimal(9)
+  sub_total : decimal(9)
+  numero_factura : bigint(8) [FK]
+}
+
+entity "DetalleCompra" {
+  + numero_compra : decimal(9) [FK]
+  --
+  material: bigint(8) [FK]
+  precio : decimal(9)
+  cantidad : decimal(9)
+  subtotal : decimal(9)
+}
+
+entity "CancelacionPedido" {
+  +num_pedido : decimal(9) [FK]
+  --
+  fecha : datetime2(8)
+  motivo : nvarchar(255)
+}
+
+
+' Relaciones principales
+Cliente ||--o{ Pedido 
+Sucursal ||--o{ Pedido 
+Sucursal ||--o{ Compra 
+Proveedor ||--o{ Compra 
+Pedido ||--o| CancelacionPedido
+Proveedor}o--||DatosContacto
+
+Cliente}o--||Localidad
+Sucursal}o--||Localidad
+Proveedor}o--||Localidad
+Localidad}o--||Provincia
+
+DetallePedido}o--||Sillon
+Pedido ||--o{ DetallePedido 
+Factura ||--o{ DetalleFactura 
+Factura ||--|| Envio 
+Compra ||--o{ DetalleCompra 
+
+' Relaciones de materiales
+Material||--o|Relleno
+Material||--o|Madera
+Material||--o|Tela
+
+
+Madera}o--||Color
+Tela}o--||Color
+
+MaterialTipo||--o{Material
+
+Sillon }o--|| sillon_modelo 
+Sillon }o--|| sillon_medida 
+Sillon }o--{ Material
+Factura}o--||Cliente
+Factura}o--||Sucursal
+
+' Relaciones de datos personales
+DatosContacto ||--o{ Sucursal 
+DatosContacto ||--o{ Cliente 
+DetalleCompra}o--||Material
+DetallePedido||--||DetalleFactura
+
+@enduml
