@@ -1,0 +1,293 @@
+USE GD1C2025 
+IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'REJUNTE_SA')
+BEGIN 
+	EXEC ('CREATE SCHEMA REJUNTE_SA AUTHORIZATION dbo')
+END
+GO
+
+--DROP TABLES
+IF OBJECT_ID('REJUNTE_SA.Tipo_Material', 'U') IS NOT NULL DROP TABLE REJUNTE_SA.Tipo_Material;
+IF OBJECT_ID('REJUNTE_SA.DatosContacto', 'U') IS NOT NULL DROP TABLE REJUNTE_SA.DatosContacto;
+IF OBJECT_ID('REJUNTE_SA.Localidad', 'U') IS NOT NULL DROP TABLE REJUNTE_SA.Localidad;
+IF OBJECT_ID('REJUNTE_SA.Provincia', 'U') IS NOT NULL DROP TABLE REJUNTE_SA.Provincia;
+IF OBJECT_ID('REJUNTE_SA.Proveedor', 'U') IS NOT NULL DROP TABLE REJUNTE_SA.Proveedor;
+IF OBJECT_ID('REJUNTE_SA.Cliente', 'U') IS NOT NULL DROP TABLE REJUNTE_SA.Cliente;
+IF OBJECT_ID('REJUNTE_SA.Sucursal', 'U') IS NOT NULL DROP TABLE REJUNTE_SA.Sucursal;
+IF OBJECT_ID('REJUNTE_SA.Compra', 'U') IS NOT NULL DROP TABLE REJUNTE_SA.Compra;
+IF OBJECT_ID('REJUNTE_SA.Material', 'U') IS NOT NULL DROP TABLE REJUNTE_SA.Material;
+IF OBJECT_ID('REJUNTE_SA.DetalleCompra', 'U') IS NOT NULL DROP TABLE REJUNTE_SA.DetalleCompra;
+IF OBJECT_ID('REJUNTE_SA.Pedido', 'U') IS NOT NULL DROP TABLE REJUNTE_SA.Pedido;
+IF OBJECT_ID('REJUNTE_SA.CancelacionPedido', 'U') IS NOT NULL DROP TABLE REJUNTE_SA.CancelacionPedido;
+IF OBJECT_ID('REJUNTE_SA.DetallePedido', 'U') IS NOT NULL DROP TABLE REJUNTE_SA.DetallePedido;
+
+IF OBJECT_ID('REJUNTE_SA.Factura', 'U') IS NOT NULL DROP TABLE REJUNTE_SA.Factura;
+IF OBJECT_ID('REJUNTE_SA.Envio', 'U') IS NOT NULL DROP TABLE REJUNTE_SA.Envio;
+IF OBJECT_ID('REJUNTE_SA.DetalleFactura', 'U') IS NOT NULL DROP TABLE REJUNTE_SA.DetalleFactura;
+IF OBJECT_ID('REJUNTE_SA.sillon_modelo', 'U') IS NOT NULL DROP TABLE REJUNTE_SA.sillon_modelo;
+IF OBJECT_ID('REJUNTE_SA.sillon_medida', 'U') IS NOT NULL DROP TABLE REJUNTE_SA.sillon_medida;
+IF OBJECT_ID('REJUNTE_SA.Tela', 'U') IS NOT NULL DROP TABLE REJUNTE_SA.Tela;
+IF OBJECT_ID('REJUNTE_SA.Relleno', 'U') IS NOT NULL DROP TABLE REJUNTE_SA.Relleno;
+IF OBJECT_ID('REJUNTE_SA.Madera', 'U') IS NOT NULL DROP TABLE REJUNTE_SA.Madera;
+IF OBJECT_ID('REJUNTE_SA.Sillon', 'U') IS NOT NULL DROP TABLE REJUNTE_SA.Sillon;
+
+--TABLES
+
+--CREATE TABLE REJUNTE_SA.Tipo_Material (
+    -- No tiene campos definidos en el diagrama
+--)
+--GO
+
+CREATE TABLE REJUNTE_SA.DatosContacto (
+    id_datos BIGINT PRIMARY KEY,
+    telefono NVARCHAR(255),
+    mail NVARCHAR(255)
+)
+GO
+
+CREATE TABLE REJUNTE_SA.Localidad (
+    numero BIGINT IDENTITY(1,1) PRIMARY KEY,
+    num_provincia BIGINT,
+    nombre NVARCHAR(255)
+)
+GO
+
+CREATE TABLE REJUNTE_SA.Provincia (
+    numero BIGINT IDENTITY(1,1) PRIMARY KEY,
+    nombre NVARCHAR(255)
+)
+GO
+
+CREATE TABLE REJUNTE_SA.Proveedor (
+    id BIGINT PRIMARY KEY,
+    razon_social NVARCHAR(255),
+    cuit NVARCHAR(255),
+    direccion NVARCHAR(255),
+    datos_contacto BIGINT,
+    num_localidad BIGINT
+)
+GO
+
+CREATE TABLE REJUNTE_SA.Cliente (
+    idCliente BIGINT PRIMARY KEY,
+    DNI BIGINT UNIQUE,
+    nombre NVARCHAR(255),
+    apellido NVARCHAR(255),
+    fechaNac DATETIME2(6),
+    direccion BIGINT,
+    datos_contacto BIGINT,
+    num_localidad BIGINT
+)
+GO
+
+CREATE TABLE REJUNTE_SA.Sucursal (
+    NroSucursal BIGINT PRIMARY KEY,
+    datos_contacto BIGINT,
+    numero_localidad BIGINT
+)
+GO
+
+CREATE TABLE REJUNTE_SA.Compra (
+    numero DECIMAL(9, 0) PRIMARY KEY,
+    numero_sucursal BIGINT,
+    numero_proveedor BIGINT,
+    fecha DATETIME2(6),
+    total DECIMAL(9)
+)
+GO
+
+CREATE TABLE REJUNTE_SA.Material (
+    numero BIGINT PRIMARY KEY,
+    tipo NVARCHAR(255),
+    nombre NVARCHAR(255),
+    descripcion NVARCHAR(255),
+    precio DECIMAL(17)
+)
+GO
+
+CREATE TABLE REJUNTE_SA.DetalleCompra (
+    numero_compra DECIMAL(9, 0),
+    material BIGINT,
+    precio DECIMAL(9),
+    cantidad DECIMAL(9, 0),
+    subtotal DECIMAL(9)
+)
+GO
+
+CREATE TABLE REJUNTE_SA.Pedido (
+    numero DECIMAL(9, 0) PRIMARY KEY,
+    sucursal BIGINT,
+    cliente BIGINT,
+    fecha DATETIME2(6),
+    total DECIMAL(9),
+    estado NVARCHAR(255)
+)
+GO
+
+CREATE TABLE REJUNTE_SA.CancelacionPedido (
+    num_pedido DECIMAL(9, 0),
+    fecha DATETIME2(6),
+    motivo NVARCHAR(255)
+)
+GO
+
+CREATE TABLE REJUNTE_SA.DetallePedido (
+    numero BIGINT PRIMARY KEY,
+    pedido DECIMAL(9, 0),
+    cantidad BIGINT,
+    precio DECIMAL(9),
+    subtotal DECIMAL(9),
+    codigo_sillon BIGINT
+)
+GO
+
+CREATE TABLE REJUNTE_SA.Factura (
+    numero BIGINT PRIMARY KEY,
+    sucursal BIGINT,
+    cliente BIGINT,
+    fecha DATETIME2(6),
+    total DECIMAL(17)
+)
+GO
+
+CREATE TABLE REJUNTE_SA.Envio (
+    numero BIGINT PRIMARY KEY,
+    factura_numero BIGINT,
+    fecha_programada DATETIME2(6),
+    fecha_entrega DATE,
+    importe_traslado DECIMAL(9),
+    importe_subida DECIMAL(9)
+)
+GO
+
+CREATE TABLE REJUNTE_SA.DetalleFactura (
+    det_pedido BIGINT,
+    precio DECIMAL(9),
+    cantidad DECIMAL(9),
+    sub_total DECIMAL(9),
+    numero_factura BIGINT
+)
+GO
+
+CREATE TABLE REJUNTE_SA.sillon_modelo (
+    codigo BIGINT PRIMARY KEY,
+    modelo NVARCHAR(255),
+    descripcion NVARCHAR(255),
+    precio DECIMAL(9)
+)
+GO
+
+CREATE TABLE REJUNTE_SA.sillon_medida (
+    codigo BIGINT PRIMARY KEY,
+    alto DECIMAL(9),
+    ancho DECIMAL(9),
+    profundidad DECIMAL(9),
+    precio DECIMAL(9)
+)
+GO
+
+CREATE TABLE REJUNTE_SA.Tela (
+    numero_tela BIGINT PRIMARY KEY,
+    tela_color NVARCHAR(255),
+    tela_textura NVARCHAR(255)
+)
+GO
+
+CREATE TABLE REJUNTE_SA.Relleno (
+    numero_relleno BIGINT PRIMARY KEY,
+    relleno_densidad DECIMAL(17)
+)
+GO
+
+CREATE TABLE REJUNTE_SA.Madera (
+    numero_madera BIGINT PRIMARY KEY,
+    madera_color NVARCHAR(255),
+    madera_dureza NVARCHAR(255)
+)
+GO
+
+CREATE TABLE REJUNTE_SA.Sillon (
+    id_sillon BIGINT PRIMARY KEY,
+    codigo_modelo BIGINT,
+    codigo_medida BIGINT,
+    codigo_tela BIGINT,
+    codigo_madera BIGINT,
+    codigo_relleno BIGINT
+)
+GO
+
+--FOREIGN KEYS
+ALTER TABLE REJUNTE_SA.Localidad
+ADD FOREIGN KEY (num_provincia) REFERENCES REJUNTE_SA.Provincia(numero);
+
+ALTER TABLE REJUNTE_SA.Proveedor
+ADD FOREIGN KEY (datos_contacto) REFERENCES REJUNTE_SA.DatosContacto(id_datos);
+ALTER TABLE REJUNTE_SA.Proveedor
+ADD FOREIGN KEY (num_localidad) REFERENCES REJUNTE_SA.Localidad(numero);
+
+ALTER TABLE REJUNTE_SA.Cliente
+ADD FOREIGN KEY (datos_contacto) REFERENCES REJUNTE_SA.DatosContacto(id_datos);
+ALTER TABLE REJUNTE_SA.Cliente
+ADD FOREIGN KEY (num_localidad) REFERENCES REJUNTE_SA.Localidad(numero);
+
+
+ALTER TABLE REJUNTE_SA.Sucursal
+ADD FOREIGN KEY (datos_contacto) REFERENCES REJUNTE_SA.DatosContacto(id_datos);
+ALTER TABLE REJUNTE_SA.Sucursal
+ADD FOREIGN KEY (numero_localidad) REFERENCES REJUNTE_SA.Localidad(numero);
+
+ALTER TABLE REJUNTE_SA.Compra
+ADD FOREIGN KEY (numero_sucursal) REFERENCES REJUNTE_SA.Sucursal(NroSucursal);
+ALTER TABLE REJUNTE_SA.Compra
+ADD FOREIGN KEY (numero_proveedor) REFERENCES REJUNTE_SA.Proveedor(id);
+
+ALTER TABLE REJUNTE_SA.DetalleCompra
+ADD FOREIGN KEY (numero_compra) REFERENCES REJUNTE_SA.Compra(numero);
+ALTER TABLE REJUNTE_SA.DetalleCompra
+ADD FOREIGN KEY (material) REFERENCES REJUNTE_SA.Material(numero);
+
+ALTER TABLE REJUNTE_SA.Pedido
+ADD FOREIGN KEY (sucursal) REFERENCES REJUNTE_SA.Sucursal(NroSucursal);
+ALTER TABLE REJUNTE_SA.Pedido
+ADD FOREIGN KEY (cliente) REFERENCES REJUNTE_SA.Cliente(idCliente);
+
+ALTER TABLE REJUNTE_SA.CancelacionPedido
+ADD FOREIGN KEY (num_pedido) REFERENCES REJUNTE_SA.Pedido(numero);
+
+ALTER TABLE REJUNTE_SA.DetallePedido
+ADD FOREIGN KEY (pedido) REFERENCES REJUNTE_SA.Pedido(numero);
+ALTER TABLE REJUNTE_SA.DetallePedido
+ADD FOREIGN KEY (codigo_sillon) REFERENCES REJUNTE_SA.Sillon(id_sillon);
+
+ALTER TABLE REJUNTE_SA.Factura
+ADD FOREIGN KEY (sucursal) REFERENCES REJUNTE_SA.Sucursal(NroSucursal);
+ALTER TABLE REJUNTE_SA.Factura
+ADD FOREIGN KEY (cliente) REFERENCES REJUNTE_SA.Cliente(idCliente);
+
+ALTER TABLE REJUNTE_SA.Envio
+ADD FOREIGN KEY (factura_numero) REFERENCES REJUNTE_SA.Factura(numero);
+
+ALTER TABLE REJUNTE_SA.DetalleFactura
+ADD FOREIGN KEY (det_pedido) REFERENCES REJUNTE_SA.DetallePedido(numero);
+ALTER TABLE REJUNTE_SA.DetalleFactura
+ADD FOREIGN KEY (numero_factura) REFERENCES REJUNTE_SA.Factura(numero);
+
+
+ALTER TABLE REJUNTE_SA.Sillon
+ADD FOREIGN KEY (codigo_modelo) REFERENCES REJUNTE_SA.sillon_modelo(codigo);
+ALTER TABLE REJUNTE_SA.Sillon
+ADD FOREIGN KEY (codigo_medida) REFERENCES REJUNTE_SA.sillon_medida(codigo);
+ALTER TABLE REJUNTE_SA.Sillon
+ADD FOREIGN KEY (codigo_tela) REFERENCES REJUNTE_SA.Tela(numero_tela);
+ALTER TABLE REJUNTE_SA.Sillon
+ADD FOREIGN KEY (codigo_madera) REFERENCES REJUNTE_SA.Madera(numero_madera);
+ALTER TABLE REJUNTE_SA.Sillon
+ADD FOREIGN KEY (codigo_relleno) REFERENCES REJUNTE_SA.Relleno(numero_relleno);
+
+
+CREATE VIEW GROUPBY4.VistaLugares AS 
+SELECT Cliente_Provincia AS Provincia,  Cliente_Localidad FROM [GD1C2025].[gd_esquema].[Maestra] WHERE Cliente_Provincia IS NOT NULL AND Cliente_Localidad IS NOT NULL
+UNION
+SELECT Proveedor_Provincia, Proveedor_Localidad FROM [GD1C2025].[gd_esquema].[Maestra] WHERE Proveedor_Provincia IS NOT NULL AND Proveedor_Localidad IS NOT NULL
+UNION
+SELECT Sucursal_Provincia, Sucursal_Localidad FROM [GD1C2025].[gd_esquema].[Maestra] WHERE Sucursal_Provincia IS NOT NULL AND Sucursal_Localidad IS NOT NULL
+GO
