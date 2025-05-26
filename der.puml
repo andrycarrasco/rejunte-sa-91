@@ -15,26 +15,31 @@ entity "Pedido" {
 }
 
 entity "Sucursal" {
-  + NroSucursal : bigint(8) [PK]
+  + id : bigint(8) [PK]
   --
   datos_contacto : bigint(8) [FK]
   numero_localidad : bigint(8) [FK]
 }
 
+entity "Direccion" {
+    +id: bigint(8)
+    --
+    detalle: nvarchar(255)
+}
+
 entity "Cliente" {
-  + idCliente : bigint(8) [PK]
+  + dni : bigint(8) [PK]
   --
-  DNI : bigint(8) [unique]
+  id_direccion : bigint(8) [FK]
+  datos_contacto : bigint(8) [FK]
+  num_localidad : bigint(8) [FK]
   nombre : nvarchar(255)
   apellido : nvarchar(255)
   fechaNac : datetime2(8)
-  direccion : bigint(8)
-  datos_contacto : bigint(8) [FK]
-  num_localidad : bigint(8) [FK]
 }
 
 entity "DatosContacto" {
-  + id_datos : bigint(8) [PK]
+  + id: bigint(8) [PK]
   --
   telefono : bigint(8)
   mail : bigint(8)
@@ -42,13 +47,14 @@ entity "DatosContacto" {
 
 entity "Localidad" {
   +numero : bigint(8) [PK]
-  +num_provincia : bigint(8) [PK]
   --
+  +num_provincia : bigint(8) [FK]
   nombre : nvarchar(255)
 }
 
 entity "Provincia" {
   +numero : bigint(8) [PK]
+  --
   nombre : nvarchar(255)
 }
 
@@ -76,9 +82,9 @@ entity "Envio" {
 entity "Sillon" {
   + id_sillon : bigint(8) [PK]
   --
+  composicion_material : bigint(8) [FK]
   codigo_modelo : bigint(8)
   codigo_medida : bigint(8)
-  composicion_material : bigint(8) [FK]
 }
 
 entity "sillon_modelo" {
@@ -102,10 +108,10 @@ entity "sillon_medida" {
 entity "Material" {
   + id_material : bigint(8) [PK]
   --
+  id_material_tipo : bigint(8) [FK]
   nombre : nvarchar(255)
   descripcion : nvarchar(255)
   precio : decimal(17)
-  id_material_tipo : bigint(8) [PK]
 }
 
 entity "MaterialTipo" {
@@ -157,35 +163,35 @@ entity "Compra" {
 entity "Proveedor" {
   + id : bigint(8) [PK]
   --
-  razon_social : nvarchar(255)
-  cuit : nvarchar(255)
-  direccion : nvarchar(255)
+  id_direccion : bigint(8) [FK]
   datos_contacto : bigint(8) [FK]
   num_localidad : bigint(8) [FK]
+  razon_social : nvarchar(255)
+  cuit : nvarchar(255)
 }
 
 ' Entidades de relación
 entity "DetallePedido" {
   + numero : bigint(8)
   --
-  pedido : decimal(9) [FK]
+  nro_pedido : decimal(9) [FK]
+  codigo_sillon: bigiint(8) [FK]
   cantidad : bigint(8)
   precio : decimal(9)
   subtotal : decimal(9)
-  codigo_sillon: bigiint(8) [FK]
 }
 
 entity "DetalleFactura" {
-  + det_pedido : bigint(8) [FK]
+  + det_pedido : bigint(8) [PK]
   --
+  numero_factura : bigint(8) [FK]
   precio : decimal(9)
   cantidad : decimal(9)
   sub_total : decimal(9)
-  numero_factura : bigint(8) [FK]
 }
 
 entity "DetalleCompra" {
-  + numero_compra : decimal(9) [FK]
+  + numero_compra : decimal(9) [PK]
   --
   material: bigint(8) [FK]
   precio : decimal(9)
@@ -194,7 +200,7 @@ entity "DetalleCompra" {
 }
 
 entity "CancelacionPedido" {
-  +num_pedido : decimal(9) [FK]
+  +num_pedido : decimal(9) [PK]
   --
   fecha : datetime2(8)
   motivo : nvarchar(255)
