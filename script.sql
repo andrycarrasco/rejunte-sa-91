@@ -59,7 +59,7 @@ CREATE TABLE REJUNTE_SA.Provincia (
 GO
 
 CREATE TABLE REJUNTE_SA.Proveedor (
-    id BIGINT PRIMARY KEY,
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
     razon_social NVARCHAR(255),
     cuit NVARCHAR(255),
     direccion NVARCHAR(255),
