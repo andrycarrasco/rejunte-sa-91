@@ -29,7 +29,8 @@ IF OBJECT_ID('REJUNTE_SA.Tela', 'U') IS NOT NULL DROP TABLE REJUNTE_SA.Tela;
 IF OBJECT_ID('REJUNTE_SA.Relleno', 'U') IS NOT NULL DROP TABLE REJUNTE_SA.Relleno;
 IF OBJECT_ID('REJUNTE_SA.Madera', 'U') IS NOT NULL DROP TABLE REJUNTE_SA.Madera;
 IF OBJECT_ID('REJUNTE_SA.Sillon', 'U') IS NOT NULL DROP TABLE REJUNTE_SA.Sillon;
-
+IF OBJECT_ID('REJUNTE_SA.MaterialTipo', 'U') IS NOT NULL DROP TABLE REJUNTE_SA.MaterialTipo;
+IF OBJECT_ID('REJUNTE_SA.Color', 'U') IS NOT NULL DROP TABLE REJUNTE_SA.Color;
 --TABLES
 
 --CREATE TABLE REJUNTE_SA.Tipo_Material (
@@ -68,7 +69,7 @@ CREATE TABLE REJUNTE_SA.Proveedor (
 GO
 
 CREATE TABLE REJUNTE_SA.Cliente (
-    idCliente BIGINT PRIMARY KEY,
+    idCliente BIGINT IDENTITY(1,1) PRIMARY KEY,
     DNI BIGINT UNIQUE,
     nombre NVARCHAR(255),
     apellido NVARCHAR(255),
@@ -96,8 +97,8 @@ CREATE TABLE REJUNTE_SA.Compra (
 GO
 
 CREATE TABLE REJUNTE_SA.Material (
-    numero BIGINT PRIMARY KEY,
-    tipo NVARCHAR(255),
+    numero BIGINT IDENTITY(1,1) PRIMARY KEY,
+    id_material_tipo BIGINT,
     nombre NVARCHAR(255),
     descripcion NVARCHAR(255),
     precio DECIMAL(38, 2)
@@ -131,7 +132,7 @@ CREATE TABLE REJUNTE_SA.CancelacionPedido (
 GO
 
 CREATE TABLE REJUNTE_SA.DetallePedido (
-    numero BIGINT PRIMARY KEY,
+    numero BIGINT IDENTITY(1,1) PRIMARY KEY,
     pedido DECIMAL(18, 0),
     cantidad BIGINT,
     precio DECIMAL(18, 2),
@@ -186,21 +187,24 @@ CREATE TABLE REJUNTE_SA.sillon_medida (
 GO
 
 CREATE TABLE REJUNTE_SA.Tela (
-    numero_tela BIGINT PRIMARY KEY,
-    tela_color NVARCHAR(255),
+    numero_tela BIGINT IDENTITY(1,1) PRIMARY KEY,
+    id_material BIGINT,
+    id_color BIGINT,
     tela_textura NVARCHAR(255)
 )
 GO
 
 CREATE TABLE REJUNTE_SA.Relleno (
-    numero_relleno BIGINT PRIMARY KEY,
+    numero_relleno BIGINT IDENTITY(1,1) PRIMARY KEY,
+    id_material BIGINT,
     relleno_densidad DECIMAL(38, 2)
 )
 GO
 
 CREATE TABLE REJUNTE_SA.Madera (
-    numero_madera BIGINT PRIMARY KEY,
-    madera_color NVARCHAR(255),
+    numero_madera BIGINT IDENTITY(1,1) PRIMARY KEY,
+    id_material BIGINT,
+    id_color BIGINT,
     madera_dureza NVARCHAR(255)
 )
 GO
@@ -214,6 +218,20 @@ CREATE TABLE REJUNTE_SA.Sillon (
     codigo_relleno BIGINT
 )
 GO
+
+CREATE TABLE REJUNTE_SA.MaterialTipo (
+    id_tipo_material BIGINT PRIMARY KEY,
+    nombre NVARCHAR(255)
+)
+GO
+
+CREATE TABLE REJUNTE_SA.Color (
+    id_color BIGINT IDENTITY(1,1) PRIMARY KEY,
+    nombre NVARCHAR(255)
+)
+GO
+
+
 
 --FOREIGN KEYS
 ALTER TABLE REJUNTE_SA.Localidad
@@ -271,18 +289,32 @@ ADD FOREIGN KEY (det_pedido) REFERENCES REJUNTE_SA.DetallePedido(numero);
 ALTER TABLE REJUNTE_SA.DetalleFactura
 ADD FOREIGN KEY (numero_factura) REFERENCES REJUNTE_SA.Factura(numero);
 
-
 ALTER TABLE REJUNTE_SA.Sillon
 ADD FOREIGN KEY (codigo_modelo) REFERENCES REJUNTE_SA.sillon_modelo(codigo);
 ALTER TABLE REJUNTE_SA.Sillon
 ADD FOREIGN KEY (codigo_medida) REFERENCES REJUNTE_SA.sillon_medida(codigo);
 ALTER TABLE REJUNTE_SA.Sillon
-ADD FOREIGN KEY (codigo_tela) REFERENCES REJUNTE_SA.Tela(numero_tela);
+ADD FOREIGN KEY (codigo_tela) REFERENCES REJUNTE_SA.Material(numero);
 ALTER TABLE REJUNTE_SA.Sillon
-ADD FOREIGN KEY (codigo_madera) REFERENCES REJUNTE_SA.Madera(numero_madera);
+ADD FOREIGN KEY (codigo_madera) REFERENCES REJUNTE_SA.Material(numero);
 ALTER TABLE REJUNTE_SA.Sillon
-ADD FOREIGN KEY (codigo_relleno) REFERENCES REJUNTE_SA.Relleno(numero_relleno);
+ADD FOREIGN KEY (codigo_relleno) REFERENCES REJUNTE_SA.Material(numero);
 
+ALTER TABLE REJUNTE_SA.Tela
+ADD FOREIGN KEY(id_material) REFERENCES REJUNTE_SA.Material(numero);
+ALTER TABLE REJUNTE_SA.Tela
+ADD FOREIGN KEY(id_color) REFERENCES REJUNTE_SA.Color(id_color);
+
+ALTER TABLE REJUNTE_SA.Madera
+ADD FOREIGN KEY(id_material) REFERENCES REJUNTE_SA.Material(numero);
+ALTER TABLE REJUNTE_SA.Madera
+ADD FOREIGN KEY(id_color) REFERENCES REJUNTE_SA.Color(id_color);
+
+ALTER TABLE REJUNTE_SA.Relleno
+ADD FOREIGN KEY(id_material) REFERENCES REJUNTE_SA.Material(numero);
+
+ALTER TABLE REJUNTE_SA.Material
+ADD FOREIGN KEY(id_material_tipo) REFERENCES REJUNTE_SA.MaterialTipo(id_tipo_material);
 
 --Vista para migrar provincias y localidades
 CREATE VIEW REJUNTE_SA.VistaLugares AS 
@@ -307,9 +339,9 @@ BEGIN
 INSERT INTO REJUNTE_SA.Localidad (num_provincia, nombre)
 SELECT DISTINCT
     p.numero AS num_provincia,
-    loc.localidad
-FROM REJUNTE_SA.VistaLugares loc
-JOIN REJUNTE_SA.Provincia p ON loc.provincia = p.nombre;
+    l.localidad
+FROM REJUNTE_SA.VistaLugares l
+JOIN REJUNTE_SA.Provincia p ON l.provincia = p.nombre;
 END
 GO
 
@@ -334,7 +366,10 @@ SELECT * FROM REJUNTE_SA.TelefonoMail
 END 
 GO 
 
---migrar clientes incoompleto
+--migrar clientes 
+CREATE PROCEDURE REJUNTE_SA.migrar_clientes 
+BEGIN
+INSERT INTO REJUNTE_SA.Cliente (nombre, apellido, telefono, mail, direccion, provincia)
 SELECT
 	distinct 
     m.Cliente_Dni,
@@ -342,110 +377,18 @@ SELECT
     m.Cliente_Apellido,
     m.Cliente_FechaNacimiento,
     m.Cliente_Direccion,
-    dc.id_datos,
+    d.id_datos,
     l.numero AS num_localidad
 FROM [GD1C2025].[gd_esquema].[Maestra] m
-JOIN REJUNTE_SA.DatosContacto dc
-    ON dc.telefono = m.Cliente_Telefono AND dc.mail = m.Cliente_Mail
+JOIN REJUNTE_SA.DatosContacto d
+    ON d.telefono = m.Cliente_Telefono AND d.mail = m.Cliente_Mail
 JOIN REJUNTE_SA.Provincia p
     ON p.nombre = m.Cliente_Provincia
 JOIN REJUNTE_SA.Localidad l
     ON l.nombre = m.Cliente_Localidad AND l.num_provincia = p.numero
 WHERE m.Cliente_Dni IS NOT NULL
 AND m.Cliente_Direccion IS NOT NULL
-;
-
-
-
---RECORRER USANDO CURSOR
-CREATE PROCEDURE REJUNTE_SA.migrar_Incidente_y_Involucrados_incidente AS
-BEGIN
-	-- Declaramos cursor para insertar datos en Incidente y Involucrados_Incidente
-	DECLARE incidentes_cursor CURSOR FOR 
-	SELECT 
-		m.CODIGO_CARRERA,
-		m.CODIGO_SECTOR,
-		m.INCIDENTE_BANDERA, 
-		m.INCIDENTE_NUMERO_VUELTA,
-		m.INCIDENTE_TIEMPO,
-		m.INCIDENTE_TIPO,
-		m.PILOTO_NOMBRE,
-		m.PILOTO_APELLIDO
-	FROM gd_esquema.Maestra m
-	WHERE INCIDENTE_BANDERA IS NOT NULL
-
-	DECLARE @CODIGO_CARRERA INT
-	DECLARE @CODIGO_SECTOR INT
-	DECLARE @INCIDENTE_BANDERA NVARCHAR(255) 
-	DECLARE @INCIDENTE_NUMERO_VUELTA DECIMAL(18,0)
-	DECLARE @INCIDENTE_TIEMPO DECIMAL(18,2)
-	DECLARE @INCIDENTE_TIPO NVARCHAR(255)
-	DECLARE @PILOTO_NOMBRE NVARCHAR(255)
-	DECLARE @PILOTO_APELLIDO NVARCHAR(255)
-
-	OPEN incidentes_cursor
-
-	FETCH NEXT FROM incidentes_cursor INTO 
-		@CODIGO_CARRERA, @CODIGO_SECTOR, @INCIDENTE_BANDERA, @INCIDENTE_NUMERO_VUELTA,
-		@INCIDENTE_TIEMPO, @INCIDENTE_TIPO, @PILOTO_NOMBRE, @PILOTO_APELLIDO
-
-	DECLARE @incidente_codigo INT
-
-
-	WHILE @@FETCH_STATUS = 0 
-	BEGIN
-		IF (REJUNTE_SA.incidente_existe(@CODIGO_CARRERA, @CODIGO_SECTOR, @INCIDENTE_BANDERA, @INCIDENTE_TIEMPO) = 0)
-		BEGIN
-			INSERT INTO REJUNTE_SA.Incidente VALUES (REJUNTE_SA.bandera_codigo(@INCIDENTE_BANDERA), @CODIGO_CARRERA, @CODIGO_SECTOR, @INCIDENTE_TIEMPO)
-		END
-		
-		INSERT INTO REJUNTE_SA.Involucrados_Incidente
-		VALUES (REJUNTE_SA.incidente_codigo(@CODIGO_CARRERA, @CODIGO_SECTOR, @INCIDENTE_BANDERA, @INCIDENTE_TIEMPO),
-			    REJUNTE_SA.piloto_obtener_auto(@PILOTO_NOMBRE, @PILOTO_APELLIDO),
-				@INCIDENTE_NUMERO_VUELTA,
-				REJUNTE_SA.incidente_tipo_codigo(@INCIDENTE_TIPO))
-
-		FETCH NEXT FROM incidentes_cursor INTO 
-			@CODIGO_CARRERA, @CODIGO_SECTOR, @INCIDENTE_BANDERA, @INCIDENTE_NUMERO_VUELTA,
-			@INCIDENTE_TIEMPO, @INCIDENTE_TIPO, @PILOTO_NOMBRE, @PILOTO_APELLIDO
-	END
-
-	CLOSE incidentes_cursor
-	DEALLOCATE incidentes_cursor
 END
 GO
 
---------------------------------------
----------- DATA MIGRATION ------------
---------------------------------------
-
-BEGIN TRANSACTION 
-	EXECUTE REJUNTE_SA.migrar_caja
-	EXECUTE REJUNTE_SA.migrar_Motor
-	EXECUTE REJUNTE_SA.migrar_Neumatico_Tipo
-	EXECUTE REJUNTE_SA.migrar_Neumatico
-	EXECUTE REJUNTE_SA.migrar_Freno
-	EXECUTE REJUNTE_SA.migrar_Bandera
-	EXECUTE REJUNTE_SA.migrar_Incidente_Tipo
-	EXECUTE REJUNTE_SA.migrar_Pais
-	EXECUTE REJUNTE_SA.migrar_Circuito
-	EXECUTE REJUNTE_SA.migrar_Carrera
-	EXECUTE REJUNTE_SA.migrar_Sector_Tipo
-	EXECUTE REJUNTE_SA.migrar_Sector
-	EXECUTE REJUNTE_SA.migrar_Nacionalidad
-	EXECUTE REJUNTE_SA.migrar_Piloto
-	EXECUTE REJUNTE_SA.migrar_Escuderia
-	EXECUTE REJUNTE_SA.migrar_Auto
-	EXECUTE REJUNTE_SA.migrar_Telemetria
-	EXECUTE REJUNTE_SA.migrar_Motor_Tele
-	EXECUTE REJUNTE_SA.migrar_Caja_Tele
-	EXECUTE REJUNTE_SA.migrar_Neumatico_Tele
-	EXECUTE REJUNTE_SA.migrar_Freno_Tele
-	EXECUTE REJUNTE_SA.migrar_Parada_y_Cambio_Neumatico
-	EXECUTE REJUNTE_SA.migrar_Incidente_y_Involucrados_incidente
-COMMIT TRANSACTION
-
---DROP PROCEDURES
-DROP PROCEDURE REJUNTE_SA.migrar_caja
---DROP FUNCTIONS
-DROP FUNCTION REJUNTE_SA.escuderia_obtener
+--migrar proveedores
