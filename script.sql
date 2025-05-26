@@ -210,7 +210,7 @@ CREATE TABLE REJUNTE_SA.Madera (
 GO
 
 CREATE TABLE REJUNTE_SA.Sillon (
-    id_sillon BIGINT PRIMARY KEY,
+    id_sillon BIGINT IDENTITY(1,1) PRIMARY KEY,
     codigo_modelo BIGINT,
     codigo_medida BIGINT,
     codigo_tela BIGINT,
@@ -220,7 +220,7 @@ CREATE TABLE REJUNTE_SA.Sillon (
 GO
 
 CREATE TABLE REJUNTE_SA.MaterialTipo (
-    id_tipo_material BIGINT PRIMARY KEY,
+    id_tipo_material BIGINT IDENTITY(1,1) PRIMARY KEY,
     nombre NVARCHAR(255)
 )
 GO
