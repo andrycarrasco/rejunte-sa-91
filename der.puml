@@ -89,7 +89,7 @@ entity "Sillon" {
   id_medida : bigint(8)
 }
 
-entity "SillonModelo" {
+entity "Modelo" {
   + id : bigint(8) [PK]
   --
   modelo : nvarchar(255)
@@ -97,7 +97,7 @@ entity "SillonModelo" {
   precio : decimal(9)
 }
 
-entity "SillonMedida" {
+entity "Medida" {
   + id : bigint(8) [PK]
   --
   alto : decimal(9)
@@ -239,8 +239,8 @@ Tela}o--||Color
 
 MaterialTipo||--o{Material
 
-Sillon }o--|| SillonModelo 
-Sillon }o--|| SillonMedida
+Sillon }o--|| Modelo 
+Sillon }o--|| Medida
 Sillon }o--{ Material
 Factura}o--||Cliente
 Factura}o--||Sucursal
