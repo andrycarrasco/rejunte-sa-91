@@ -415,3 +415,54 @@ END
 GO
 
 --migrar proveedores
+CREATE PROCEDURE REJUNTE_SA.migrar_proveedores
+BEGIN 
+INSERT INTO REJUNTE_SA.Proveedor (razon_social, cuit, direccion, datos_contacto, num_localidad)
+SELECT 
+m.Proveedor_RazonSocial,
+m.Proveedor_Cuit,
+m.Proveedor_Direccion,
+d.id_datos 
+l.numero
+FROM [GD1C2025].[gd_esquema].[Maestra] m
+JOIN REJUNTE_SA.DatosContacto d
+ON d.telefono = m.Proveedor_Telefono AND d.mail = m.Proveedor_M
+JOIN REJUNTE_SA.Localidad l 
+ON l.nombre = m.Proveedor_Localidad
+END 
+GO
+
+--migrar Sucursales
+CREATE PROCEDURE REJUNTE_SA.migrar_sucursales
+BEGIN
+INSERT INTO REJUNTE_SA.Sucursal (NroSucursal, datos_contacto, direccion, numero_localidad)
+SELECT 
+m.Sucursal_NroSucursal,
+d.id_datos,
+m.Sucursal_Direccion,
+l.numero
+FROM [GD1C2025].[gd_esquema].[Maestra] m
+JOIN REJUNTE_SA.DatosContacto d
+ON d.telefono = m.Sucursal_Telefono AND d.mail = m.Sucursal_Mail
+JOIN REJUNTE_SA.Localidad l
+ON l.nombre = m.Sucursal_Localidad
+END 
+GO
+
+--migrar factura 
+
+CREATE PROCEDURE REJUNTE_SA.migrar_facturas
+BEGIN 
+INSERT INTO REJUNTE_SA.Factura (numero, sucursal, cliente, fecha, total)
+SELECT m.Factura_numero,
+s.NroSucursal
+c.idCliente,
+m.Factura_Fecha,
+m.Factura_Total
+FROM [GD1C2025].[gd_esquema].[Maestra] m
+JOIN REJUNTE_SA.Cliente c
+ON c.nombre = m.Cliente_Nombre AND c.apellido = m.Cliente_Apellido
+JOIN REJUNTE_SA.Sucursal s 
+ON s.NroSucursal = m.Sucursal_NroSucursal
+END
+GO
