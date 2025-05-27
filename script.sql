@@ -83,12 +83,13 @@ GO
 CREATE TABLE REJUNTE_SA.Sucursal (
     NroSucursal BIGINT PRIMARY KEY,
     datos_contacto BIGINT,
+    direccion NVARCHAR(255),
     numero_localidad BIGINT
 )
 GO
 
 CREATE TABLE REJUNTE_SA.Compra (
-    numero DECIMAL(18, 0) PRIMARY KEY,
+    numero DECIMAL(18, 0)  PRIMARY KEY,
     numero_sucursal BIGINT,
     numero_proveedor BIGINT,
     fecha DATETIME2(6),
@@ -210,7 +211,7 @@ CREATE TABLE REJUNTE_SA.Madera (
 GO
 
 CREATE TABLE REJUNTE_SA.Sillon (
-    id_sillon BIGINT IDENTITY(1,1) PRIMARY KEY,
+    id_sillon BIGINT PRIMARY KEY,
     codigo_modelo BIGINT,
     codigo_medida BIGINT,
     codigo_tela BIGINT,
@@ -220,7 +221,7 @@ CREATE TABLE REJUNTE_SA.Sillon (
 GO
 
 CREATE TABLE REJUNTE_SA.MaterialTipo (
-    id_tipo_material BIGINT IDENTITY(1,1) PRIMARY KEY,
+    id_tipo_material BIGINT PRIMARY KEY,
     nombre NVARCHAR(255)
 )
 GO
@@ -392,3 +393,54 @@ END
 GO
 
 --migrar proveedores
+CREATE PROCEDURE REJUNTE_SA.migrar_proveedores
+BEGIN 
+INSERT INTO REJUNTE_SA.Proveedor (razon_social, cuit, direccion, datos_contacto, num_localidad)
+SELECT 
+m.Proveedor_RazonSocial,
+m.Proveedor_Cuit,
+m.Proveedor_Direccion,
+d.id_datos 
+l.numero
+FROM [GD1C2025].[gd_esquema].[Maestra] m
+JOIN REJUNTE_SA.DatosContacto d
+ON d.telefono = m.Proveedor_Telefono AND d.mail = m.Proveedor_M
+JOIN REJUNTE_SA.Localidad l 
+ON l.nombre = m.Proveedor_Localidad
+END 
+GO
+
+--migrar Sucursales
+CREATE PROCEDURE REJUNTE_SA.migrar_sucursales
+BEGIN
+INSERT INTO REJUNTE_SA.Sucursal (NroSucursal, datos_contacto, direccion, numero_localidad)
+SELECT 
+m.Sucursal_NroSucursal,
+d.id_datos,
+m.Sucursal_Direccion,
+l.numero
+FROM [GD1C2025].[gd_esquema].[Maestra] m
+JOIN REJUNTE_SA.DatosContacto d
+ON d.telefono = m.Sucursal_Telefono AND d.mail = m.Sucursal_Mail
+JOIN REJUNTE_SA.Localidad l
+ON l.nombre = m.Sucursal_Localidad
+END 
+GO
+
+--migrar factura 
+
+CREATE PROCEDURE REJUNTE_SA.migrar_facturas
+BEGIN 
+INSERT INTO REJUNTE_SA.Factura (numero, sucursal, cliente, fecha, total)
+SELECT m.Factura_numero,
+s.NroSucursal
+c.idCliente,
+m.Factura_Fecha,
+m.Factura_Total
+FROM [GD1C2025].[gd_esquema].[Maestra] m
+JOIN REJUNTE_SA.Cliente c
+ON c.nombre = m.Cliente_Nombre AND c.apellido = m.Cliente_Apellido
+JOIN REJUNTE_SA.Sucursal s 
+ON s.NroSucursal = m.Sucursal_NroSucursal
+END
+GO
