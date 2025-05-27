@@ -5,37 +5,39 @@ skinparam shadowing false
 
 ' Entidades principales
 entity "Pedido" {
-  + numero : decimal(9) [PK]
+  + id : decimal(18) [PK]
   --
-  sucursal : integer(8) [FK]
-  cliente : bigint(8) [FK]
+  id_sucursal : integer(8) [FK]
+  id_cliente : bigint(8) [FK]
   fecha : datetime2(8)
   total : decimal(9)
-  estado : nvarchar(255)
+  id_estado_pedido : nvarchar(255)
+}
+
+entity "EstadoPedido" {
+  + id : decimal(18) [PK]
+  --
+  descripcion : nvarchar(255)
 }
 
 entity "Sucursal" {
   + id : bigint(8) [PK]
   --
-  datos_contacto : bigint(8) [FK]
-  numero_localidad : bigint(8) [FK]
-}
-
-entity "Direccion" {
-    +id: bigint(8)
-    --
-    detalle: nvarchar(255)
+  id_datos_contacto : bigint(8) [FK]
+  id_localidad : bigint(8) [FK]
+  direccion : nvarchar(255)
 }
 
 entity "Cliente" {
-  + dni : bigint(8) [PK]
+  + id_cliente : bigint(8) [PK]
   --
-  id_direccion : bigint(8) [FK]
-  datos_contacto : bigint(8) [FK]
-  num_localidad : bigint(8) [FK]
+  dni : bigint(8) UNIQUE
+  id_datos_contacto : bigint(8) [FK]
+  id_localidad : bigint(8) [FK]
+  direccion : nvarchar(255)
   nombre : nvarchar(255)
   apellido : nvarchar(255)
-  fechaNac : datetime2(8)
+  fecha_nacimiento : datetime2(8)
 }
 
 entity "DatosContacto" {
@@ -46,32 +48,32 @@ entity "DatosContacto" {
 }
 
 entity "Localidad" {
-  +numero : bigint(8) [PK]
+  +id : bigint(8) [PK]
   --
-  +num_provincia : bigint(8) [FK]
+  +id_provincia : bigint(8) [FK]
   nombre : nvarchar(255)
 }
 
 entity "Provincia" {
-  +numero : bigint(8) [PK]
+  +id : bigint(8) [PK]
   --
   nombre : nvarchar(255)
 }
 
 ' Entidades de transacción
 entity "Factura" {
-  + numero : bigint(8) [PK]
+  + id : bigint(8) [PK]
   --
-  cliente : integer(8) [FK]
-  sucursal : bigint(8) [FK]
+  id_cliente : bigint(8) [FK]
+  id_sucursal : bigint(8) [FK]
   fecha : datetime2(8)
   total : decimal(17)
 }
 
 entity "Envio" {
-  + numero : bigint(8) [PK]
+  + id : bigint(8) [PK]
   --
-  factura_numero : bigint(8) [FK]
+  id_factura : bigint(8) [FK]
   fecha_programada : datetime2(8)
   fecha_entrega : date
   importe_traslado : decimal(9)
@@ -80,23 +82,23 @@ entity "Envio" {
 
 ' Entidades de productos
 entity "Sillon" {
-  + id_sillon : bigint(8) [PK]
+  + id : bigint(8) [PK]
   --
-  composicion_material : bigint(8) [FK]
-  codigo_modelo : bigint(8)
-  codigo_medida : bigint(8)
+  id_material : bigint(8) [FK]
+  id_modelo : bigint(8)
+  id_medida : bigint(8)
 }
 
-entity "sillon_modelo" {
-  + codigo : bigint(8) [PK]
+entity "SillonModelo" {
+  + id : bigint(8) [PK]
   --
   modelo : nvarchar(255)
   descripcion : nvarchar(255)
   precio : decimal(9)
 }
 
-entity "sillon_medida" {
-  + codigo : bigint(8) [PK]
+entity "SillonMedida" {
+  + id : bigint(8) [PK]
   --
   alto : decimal(9)
   ancho : decimal(9)
@@ -115,19 +117,19 @@ entity "Material" {
 }
 
 entity "MaterialTipo" {
-  + id_material_tipo : bigint(8) [PK]
+  + id : bigint(8) [PK]
   --
-  nombre : nvarchar(255)
+  descripcion : nvarchar(255)
 }
 
 entity "Color" {
-  + id_color : bigint(8) [PK]
+  + id : bigint(8) [PK]
   --
-  nombre : nvarchar(255)
+  descripcion : nvarchar(255)
 }
 
 entity "Tela" {
-  + id_tela : bigint(8) [PK]
+  + id : bigint(8) [PK]
   --
   id_material : bigint(8) [FK]
   id_color : nvarchar(255)
@@ -135,14 +137,14 @@ entity "Tela" {
 }
 
 entity "Relleno" {
-  + id_relleno : bigint(8) [PK]
+  + id : bigint(8) [PK]
   --
   id_material : bigint(8) [FK]
   relleno_densidad : decimal(17)
 }
 
 entity "Madera" {
-  + id_madera : bigint(8) [PK]
+  + id : bigint(8) [PK]
   --
   id_material : bigint(8) [FK]
   id_color : nvarchar(255)
@@ -152,10 +154,10 @@ entity "Madera" {
 
 ' Entidades de compras
 entity "Compra" {
-  + numero : decimal(9) [PK]
+  + id : decimal(9) [PK]
   --
-  numero_sucursal : bigint(8) [FK]
-  numero_proveedor : bigint(8) [FK]
+  id_sucursal : bigint(8) [FK]
+  id_proveedor : bigint(8) [FK]
   fecha : datetime2(8)
   total : decimal(9)
 }
@@ -163,44 +165,44 @@ entity "Compra" {
 entity "Proveedor" {
   + id : bigint(8) [PK]
   --
-  id_direccion : bigint(8) [FK]
-  datos_contacto : bigint(8) [FK]
-  num_localidad : bigint(8) [FK]
+  id_datos_contacto : bigint(8) [FK]
+  id_localidad : bigint(8) [FK]
+  direccion : nvarchar(255)
   razon_social : nvarchar(255)
   cuit : nvarchar(255)
 }
 
-' Entidades de relación
 entity "DetallePedido" {
-  + numero : bigint(8)
+  + id : bigint(8)
   --
-  nro_pedido : decimal(9) [FK]
-  codigo_sillon: bigiint(8) [FK]
+  id_pedido : decimal(18) [FK]
+  id_sillon: bigint(8) [FK]
   cantidad : bigint(8)
   precio : decimal(9)
   subtotal : decimal(9)
 }
 
 entity "DetalleFactura" {
-  + det_pedido : bigint(8) [PK]
+  + id : bigint(8) [PK]
   --
-  numero_factura : bigint(8) [FK]
+  id_factura : bigint(8) [FK]
   precio : decimal(9)
   cantidad : decimal(9)
   sub_total : decimal(9)
 }
 
 entity "DetalleCompra" {
-  + numero_compra : decimal(9) [PK]
+  + id : bigint(8) [PK]
   --
-  material: bigint(8) [FK]
+  id_compra: decimal(9) [FK]
+  id_material: bigint(8) [FK]
   precio : decimal(9)
   cantidad : decimal(9)
   subtotal : decimal(9)
 }
 
 entity "CancelacionPedido" {
-  +num_pedido : decimal(9) [PK]
+  + id_pedido : decimal(18) [PK]
   --
   fecha : datetime2(8)
   motivo : nvarchar(255)
@@ -237,8 +239,8 @@ Tela}o--||Color
 
 MaterialTipo||--o{Material
 
-Sillon }o--|| sillon_modelo 
-Sillon }o--|| sillon_medida 
+Sillon }o--|| SillonModelo 
+Sillon }o--|| SillonMedida
 Sillon }o--{ Material
 Factura}o--||Cliente
 Factura}o--||Sucursal
@@ -247,6 +249,7 @@ Factura}o--||Sucursal
 DatosContacto ||--o{ Sucursal 
 DatosContacto ||--o{ Cliente 
 DetalleCompra}o--||Material
-DetallePedido||--||DetalleFactura
+' DetallePedido||--||DetalleFactura
+EstadoPedido ||--o{ Pedido
 
 @enduml
