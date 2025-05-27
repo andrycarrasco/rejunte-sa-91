@@ -52,6 +52,7 @@ GO
 CREATE TABLE REJUNTE_SA.Localidad (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     id_provincia BIGINT,
+    direccion NVARCHAR(255)
     nombre NVARCHAR(255)
 )
 GO
@@ -91,6 +92,7 @@ GO
 CREATE TABLE REJUNTE_SA.Sucursal (
     id BIGINT PRIMARY KEY,
     id_datos_contacto BIGINT,
+    direcion NVARCHAR(255),
     id_localidad BIGINT
 )
 GO
@@ -186,11 +188,12 @@ GO
 
 -- ok
 CREATE TABLE REJUNTE_SA.DetalleFactura (
-    id BIGINT,
+    id BIGINT IDENTITY(1,1),
     precio DECIMAL(18, 2),
     cantidad DECIMAL(18, 0),
     sub_total DECIMAL(18, 2),
-    id_factura BIGINT
+    id_factura BIGINT,
+    id_detalle_pedido
 )
 GO
 
@@ -317,6 +320,8 @@ ADD FOREIGN KEY (id_factura) REFERENCES REJUNTE_SA.Factura(id);
 
 ALTER TABLE REJUNTE_SA.DetalleFactura
 ADD FOREIGN KEY (id_factura) REFERENCES REJUNTE_SA.Factura(id);
+ALTER TABLE REJUNTE_SA.DetalleFactura
+ADD FOREIGN KEY(id_detalle_pedido) REFERENCES REJUNTE_SA.DetallePedido(id);
 
 ALTER TABLE REJUNTE_SA.Sillon
 ADD FOREIGN KEY (id_modelo) REFERENCES REJUNTE_SA.Modelo(id);
@@ -392,7 +397,7 @@ GO
 --migrar clientes
 CREATE PROCEDURE REJUNTE_SA.migrar_clientes
 BEGIN
-INSERT INTO REJUNTE_SA.Cliente (nombre, apellido, telefono, mail, direccion, provincia)
+INSERT INTO REJUNTE_SA.Cliente (dni, nombre, apellido, fecha_nacimiento, direccion, id_datos_contacto, id_localidad)
 SELECT
 	distinct
     m.Cliente_Dni,
@@ -417,17 +422,17 @@ GO
 --migrar proveedores
 CREATE PROCEDURE REJUNTE_SA.migrar_proveedores
 BEGIN 
-INSERT INTO REJUNTE_SA.Proveedor (razon_social, cuit, direccion, datos_contacto, num_localidad)
+INSERT INTO REJUNTE_SA.Proveedor (razon_social, cuit, direccion, id_datos_contacto, id_localidad)
 SELECT 
 m.Proveedor_RazonSocial,
 m.Proveedor_Cuit,
 m.Proveedor_Direccion,
 d.id_datos 
-l.numero
+l.id
 FROM [GD1C2025].[gd_esquema].[Maestra] m
 JOIN REJUNTE_SA.DatosContacto d
 ON d.telefono = m.Proveedor_Telefono AND d.mail = m.Proveedor_M
-JOIN REJUNTE_SA.Localidad l 
+JOIN REJUNTE_SA.Localidad l
 ON l.nombre = m.Proveedor_Localidad
 END 
 GO
@@ -435,12 +440,12 @@ GO
 --migrar Sucursales
 CREATE PROCEDURE REJUNTE_SA.migrar_sucursales
 BEGIN
-INSERT INTO REJUNTE_SA.Sucursal (NroSucursal, datos_contacto, direccion, numero_localidad)
+INSERT INTO REJUNTE_SA.Sucursal (id, datos_contacto, direccion, numero_localidad)
 SELECT 
 m.Sucursal_NroSucursal,
-d.id_datos,
+d.id,
 m.Sucursal_Direccion,
-l.numero
+l.id
 FROM [GD1C2025].[gd_esquema].[Maestra] m
 JOIN REJUNTE_SA.DatosContacto d
 ON d.telefono = m.Sucursal_Telefono AND d.mail = m.Sucursal_Mail
@@ -455,8 +460,8 @@ CREATE PROCEDURE REJUNTE_SA.migrar_facturas
 BEGIN 
 INSERT INTO REJUNTE_SA.Factura (numero, sucursal, cliente, fecha, total)
 SELECT m.Factura_numero,
-s.NroSucursal
-c.idCliente,
+s.id,
+c.id,
 m.Factura_Fecha,
 m.Factura_Total
 FROM [GD1C2025].[gd_esquema].[Maestra] m
@@ -464,5 +469,20 @@ JOIN REJUNTE_SA.Cliente c
 ON c.nombre = m.Cliente_Nombre AND c.apellido = m.Cliente_Apellido
 JOIN REJUNTE_SA.Sucursal s 
 ON s.NroSucursal = m.Sucursal_NroSucursal
+END
+GO
+
+--migrar DetalleFactura 
+--FALTA Insertar data en detalle_pedido
+CREATE PROCEDURE REJUNTE_SA.migrar_detalle_factura
+BEGIN 
+INSERT INTO REJUNTE_SA.DetalleFactura (precio, cantidad, sub_total, id_factura, id_detalle_pedido)
+SELECT m.DetalleFactura_Precio,
+m.DetalleFactura_Cantidad,
+m.DetalleFactura_Subtotal,
+f.id,
+dp.id
+FROM [GD1C2025].[gd_esquema].[Maestra] m
+
 END
 GO
