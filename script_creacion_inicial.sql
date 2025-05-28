@@ -35,10 +35,6 @@ IF OBJECT_ID('REJUNTE_SA.DetallePedido', 'U') IS NOT NULL DROP TABLE REJUNTE_SA.
 
 --TABLES
 
---CREATE TABLE REJUNTE_SA.Tipo_Material (
-    -- No tiene campos definidos en el diagrama
---)
---GO
 
 -- ok
 CREATE TABLE REJUNTE_SA.DatosContacto (
@@ -246,7 +242,10 @@ GO
 CREATE TABLE REJUNTE_SA.Sillon (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     id_modelo BIGINT,
-    id_medida BIGINT
+    id_medida BIGINT,
+    id_madera BIGINT,
+    id_tela BIGINT, 
+    id_relleno BIGINT
 )
 GO
 
@@ -309,6 +308,7 @@ ALTER TABLE REJUNTE_SA.DetallePedido
 ADD FOREIGN KEY (id_pedido) REFERENCES REJUNTE_SA.Pedido(id);
 ALTER TABLE REJUNTE_SA.DetallePedido
 ADD FOREIGN KEY (id_sillon) REFERENCES REJUNTE_SA.Sillon(id);
+ALTER TABLE REJUNTE_SA.Detalle_pedido
 
 ALTER TABLE REJUNTE_SA.Factura
 ADD FOREIGN KEY (id_sucursal) REFERENCES REJUNTE_SA.Sucursal(id);
@@ -327,6 +327,11 @@ ALTER TABLE REJUNTE_SA.Sillon
 ADD FOREIGN KEY (id_modelo) REFERENCES REJUNTE_SA.Modelo(id);
 ALTER TABLE REJUNTE_SA.Sillon
 ADD FOREIGN KEY (id_medida) REFERENCES REJUNTE_SA.Medida(id);
+ALTER TABLE REJUNTE_SA.Sillon
+ADD FOREIGN KEY (id_tela) REFERENCES REJUNTE_SA.Madera(id);
+ALTER TABLE REJUNTE_SA.Sillon
+ADD FOREIGN KEY (id_relleno) REFERENCES REJUNTE_SA.Medida(id);
+
 
 ALTER TABLE REJUNTE_SA.Tela
 ADD FOREIGN KEY(id_material) REFERENCES REJUNTE_SA.Material(id);
@@ -358,7 +363,7 @@ GO
 CREATE PROCEDURE REJUNTE_SA.migrar_provincias AS
 BEGIN
     INSERT INTO REJUNTE_SA.Provincia (nombre)
-    SELECT DISTINCT Provincia FROM REJUNTE_sA.VistaLugares
+    SELECT DISTINCT Provincia FROM REJUNTE_SA.VistaLugares
 END
 GO
 
@@ -423,7 +428,7 @@ GO
 CREATE PROCEDURE REJUNTE_SA.migrar_proveedores
 BEGIN 
 INSERT INTO REJUNTE_SA.Proveedor (razon_social, cuit, direccion, id_datos_contacto, id_localidad)
-SELECT 
+SELECT DISTINCT
 m.Proveedor_RazonSocial,
 m.Proveedor_Cuit,
 m.Proveedor_Direccion,
@@ -431,17 +436,18 @@ d.id_datos
 l.id
 FROM [GD1C2025].[gd_esquema].[Maestra] m
 JOIN REJUNTE_SA.DatosContacto d
-ON d.telefono = m.Proveedor_Telefono AND d.mail = m.Proveedor_M
+ON d.telefono = m.Proveedor_Telefono AND d.mail = m.Proveedor_Mail
 JOIN REJUNTE_SA.Localidad l
 ON l.nombre = m.Proveedor_Localidad
-END 
+WHERE m.Proveedor_RazonSocial IS NOT NULL AND m.Proveedor_Cuit IS NOT NULL
+END
 GO
 
 --migrar Sucursales
 CREATE PROCEDURE REJUNTE_SA.migrar_sucursales
 BEGIN
 INSERT INTO REJUNTE_SA.Sucursal (id, datos_contacto, direccion, numero_localidad)
-SELECT 
+SELECT DISTINCT
 m.Sucursal_NroSucursal,
 d.id,
 m.Sucursal_Direccion,
@@ -451,6 +457,7 @@ JOIN REJUNTE_SA.DatosContacto d
 ON d.telefono = m.Sucursal_Telefono AND d.mail = m.Sucursal_Mail
 JOIN REJUNTE_SA.Localidad l
 ON l.nombre = m.Sucursal_Localidad
+WHERE m.Sucursal_NroSucursal IS NOT NULL AND m.Sucursal_Direccion IS NOT NULL
 END 
 GO
 
@@ -459,7 +466,7 @@ GO
 CREATE PROCEDURE REJUNTE_SA.migrar_facturas
 BEGIN 
 INSERT INTO REJUNTE_SA.Factura (numero, sucursal, cliente, fecha, total)
-SELECT m.Factura_numero,
+SELECT DISTINCT m.Factura_numero,
 s.id,
 c.id,
 m.Factura_Fecha,
@@ -469,20 +476,43 @@ JOIN REJUNTE_SA.Cliente c
 ON c.nombre = m.Cliente_Nombre AND c.apellido = m.Cliente_Apellido
 JOIN REJUNTE_SA.Sucursal s 
 ON s.NroSucursal = m.Sucursal_NroSucursal
+WHERE m.Factura_numero IS NOT NULL AND m.Factura_Fecha IS NOT NULL AND m.Factura_Total IS NOT NULL
 END
 GO
 
---migrar DetalleFactura 
---FALTA Insertar data en detalle_pedido
-CREATE PROCEDURE REJUNTE_SA.migrar_detalle_factura
-BEGIN 
-INSERT INTO REJUNTE_SA.DetalleFactura (precio, cantidad, sub_total, id_factura, id_detalle_pedido)
-SELECT m.DetalleFactura_Precio,
-m.DetalleFactura_Cantidad,
-m.DetalleFactura_Subtotal,
-f.id,
-dp.id
-FROM [GD1C2025].[gd_esquema].[Maestra] m
+--migrar Pedido
+CREATE PROCEDURE REJUNTE_SA.migrar_pedidos
+BEGIN
+INSERT INTO REJUNTE_SA.Pedido (id, id_sucursal, id_cliente, fecha, total, id_estado_pedido)
+SELECT DISTINCT m.Pedido_Numero,
+s.id,
+c.id,
+m.Pedido_Fecha,
+m.Pedido_Total,
+m.Pedido_Estado
+JOIN REJUNTE_SA.Cliente c
+ON c.nombre = m.Cliente_Nombre AND c.apellido = m.Cliente_Apellido
+JOIN REJUNTE_SA.Sucursal s
+ON s.id = m.Sucursal_NroSucursal
+WHERE m.Pedido_Numero IS NOT NULL AND m.Pedido_Fecha IS NOT NULL AND m.Pedido_Total IS NOT NULL
+END 
+GO
 
-END
+
+--migrar compras 
+CREATE PROCEDURE REJUNTE_SA.migrar_compra
+BEGIN 
+INSERT INTO REJUNTE_SA.Compra (id, id_sucursal, id_proveedor, fecha, total)
+SELECT DISTINCT m.Compra_Numero, 
+s.id
+p.id 
+m.Compra_Fecha,
+m.Compra_Total
+FROM [GD1C2025].[gd_esquema].[Maestra] m
+JOIN REJUNTE_SA.Sucursal s
+ON s.id = m.Sucursal_NroSucursal
+JOIN REJUNTE_SA.Proveedor p
+ON p.razon_social = m.Proveedor_RazonSocial AND p.cuit = m.Proveedor_Cuit 
+WHERE m.Compra_Numero IS NOT NULL AND m.Compra_Fecha IS NOT NULL AND m.Compra_Total IS NOT NULL
+END 
 GO
