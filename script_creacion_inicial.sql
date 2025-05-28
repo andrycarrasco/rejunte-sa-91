@@ -774,6 +774,33 @@ BEGIN
 END
 
 GO
+CREATE VIEW REJUNTE_SA.VistaSillon AS
+SELECT
+    DISTINCT M6.Sillon_Codigo,
+    M6.Sillon_Modelo_Codigo,
+    M6.Sillon_Medida_Alto,
+    M6.Sillon_Medida_Ancho,
+    M6.Sillon_Medida_Profundidad,
+    MAX(NULLIF(M6.Tela_Textura, null)) as tela_textura,
+    MAX(NULLIF(M6.Tela_Color, null)) as tela_color,
+    MAX(NULLIF(M6.Madera_Color, null)) as madera_color,
+    MAX(NULLIF(M6.Madera_Dureza, null)) as madera_dureza,
+    MAX(NULLIF(M6.Relleno_Densidad, null)) as relleno_densidad
+FROM [GD1C2025].[gd_esquema].[Maestra] M6
+WHERE
+    M6.Sillon_Codigo IS NOT NULL AND
+    M6.Sillon_Modelo_Codigo IS NOT NULL AND
+    M6.Sillon_Medida_Alto IS NOT NULL AND
+    M6.Sillon_Medida_Ancho IS NOT NULL AND
+    M6.Sillon_Medida_Profundidad IS NOT NULL
+group by
+    M6.Sillon_Codigo,
+    M6.Sillon_Modelo_Codigo,
+    M6.Sillon_Medida_Alto,
+    M6.Sillon_Medida_Ancho,
+    M6.Sillon_Medida_Profundidad
+
+GO
 CREATE PROCEDURE REJUNTE_SA.migrar_sillon
 AS
 BEGIN
