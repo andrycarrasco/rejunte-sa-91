@@ -99,7 +99,6 @@ GO
 CREATE TABLE REJUNTE_SA.Localidad (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     id_provincia BIGINT,
-    direccion NVARCHAR(255)
     nombre NVARCHAR(255)
 )
 GO
@@ -137,7 +136,8 @@ GO
 
 -- ok
 CREATE TABLE REJUNTE_SA.Sucursal (
-    id BIGINT PRIMARY KEY,
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    numero_sucursal BIGINT,
     id_datos_contacto BIGINT,
     id_localidad BIGINT,
     direccion NVARCHAR(255)
@@ -378,7 +378,7 @@ ALTER TABLE REJUNTE_SA.DetallePedido
 ADD FOREIGN KEY (id_pedido) REFERENCES REJUNTE_SA.Pedido(id);
 ALTER TABLE REJUNTE_SA.DetallePedido
 ADD FOREIGN KEY (id_sillon) REFERENCES REJUNTE_SA.Sillon(id);
-ALTER TABLE REJUNTE_SA.Detalle_pedido
+
 
 ALTER TABLE REJUNTE_SA.Factura
 ADD FOREIGN KEY (id_sucursal) REFERENCES REJUNTE_SA.Sucursal(id);
@@ -437,13 +437,14 @@ GO
 
 
 --MIGRACION DE DATOS PROCEDURES
+GO
 CREATE PROCEDURE REJUNTE_SA.migrar_provincias AS
 BEGIN
     INSERT INTO REJUNTE_SA.Provincia (nombre)
     SELECT DISTINCT Provincia FROM REJUNTE_SA.VistaLugares
 END
-GO
 
+GO
 CREATE PROCEDURE REJUNTE_SA.migrar_localidades
 AS
 BEGIN
@@ -455,8 +456,8 @@ BEGIN
     JOIN REJUNTE_SA.Provincia p
         ON l.provincia = p.nombre;
 END
-GO
 
+GO
 CREATE VIEW REJUNTE_SA.TelefonoMail AS
 SELECT Cliente_Telefono AS telefono, Cliente_Mail AS mail
     FROM [GD1C2025].[gd_esquema].[Maestra]
@@ -477,9 +478,9 @@ BEGIN
     INSERT INTO REJUNTE_SA.DatosContacto (telefono, mail)
     SELECT * FROM REJUNTE_SA.TelefonoMail
 END
-GO
 
 --migrar clientes
+GO
 CREATE PROCEDURE REJUNTE_SA.migrar_clientes
 AS
 BEGIN
@@ -521,6 +522,7 @@ BEGIN
         ON d.telefono = m.Proveedor_Telefono AND d.mail = m.Proveedor_Mail
     JOIN REJUNTE_SA.Localidad l
         ON l.nombre = m.Proveedor_Localidad
+    WHERE m.Proveedor_RazonSocial IS NOT NULL AND m.Proveedor_Cuit IS NOT NULL
 END 
 
 --migrar Sucursales
@@ -528,20 +530,22 @@ GO
 CREATE PROCEDURE REJUNTE_SA.migrar_sucursales
 AS
 BEGIN
-    INSERT INTO REJUNTE_SA.Sucursal (id, id_datos_contacto, direccion, id_localidad)
+    INSERT INTO REJUNTE_SA.Sucursal (numero_sucursal, id_datos_contacto, direccion, id_localidad)
         SELECT
-            DISTINCT m.Sucursal_NroSucursal,
-            d.id,
-            m.Sucursal_Direccion,
-            l.id
-    FROM [GD1C2025].[gd_esquema].[Maestra] m
-    JOIN REJUNTE_SA.DatosContacto d
-        ON d.telefono = m.Sucursal_Telefono AND d.mail = m.Sucursal_Mail
-    JOIN REJUNTE_SA.Localidad l
-        ON l.nombre = m.Sucursal_Localidad
+            DISTINCT m.Sucursal_NroSucursal as id,
+            d.id as id_datos_contactos,
+            m.Sucursal_Direccion as direccion,
+            l.id as id_localidad
+        FROM [GD1C2025].[gd_esquema].[Maestra] m
+        JOIN REJUNTE_SA.DatosContacto d
+            ON d.telefono = m.Sucursal_Telefono AND d.mail = m.Sucursal_Mail
+        JOIN REJUNTE_SA.Localidad l
+            ON l.nombre = m.Sucursal_Localidad
+        WHERE m.Sucursal_NroSucursal IS NOT NULL AND m.Sucursal_Direccion IS NOT NULL
 END
 
 --migrar Pedido
+GO
 CREATE PROCEDURE REJUNTE_SA.migrar_pedidos
 AS
 BEGIN
@@ -588,7 +592,7 @@ AS
 BEGIN 
     INSERT INTO REJUNTE_SA.Factura (id, id_sucursal, id_cliente, fecha, total)
         SELECT
-            m.Factura_numero,
+            DISTINCT m.Factura_numero,
             s.id,
             c.id,
             m.Factura_Fecha,
@@ -674,6 +678,67 @@ BEGIN
 END
 
 
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_telas
+AS
+BEGIN
+    INSERT INTO REJUNTE_SA.Tela (id_material, id_color, id_textura)
+        SELECT DISTINCT
+            M.id,
+            C.id,
+            T.id
+        FROM [GD1C2025].[gd_esquema].[Maestra] M2
+        JOIN REJUNTE_SA.Textura T ON T.descripcion = M2.Tela_Textura
+        JOIN REJUNTE_SA.Color C ON C.descripcion = M2.Tela_Color
+        JOIN REJUNTE_SA.Material M ON M.nombre = M2.Material_Nombre AND M.descripcion = M2.Material_Descripcion
+        WHERE
+            Material_Tipo = 'Tela' AND
+            Material_Nombre IS NOT NULL AND
+            Material_Descripcion IS NOT NULL
+        GROUP BY C.id, Tela_Color, T.id, Tela_Textura, M.id, Material_Nombre, Material_Descripcion
+
+END
+
+
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_maderas
+AS
+BEGIN
+    INSERT INTO REJUNTE_SA.Madera (id_material, id_color, id_dureza)
+        SELECT DISTINCT
+            M.id,
+            C.id,
+            D.id
+        FROM [GD1C2025].[gd_esquema].[Maestra] M2
+        JOIN REJUNTE_SA.Dureza D ON D.descripcion = M2.Madera_Dureza
+        JOIN REJUNTE_SA.Color C ON C.descripcion = M2.Madera_Color
+        JOIN REJUNTE_SA.Material M ON M.nombre = M2.Material_Nombre AND M.descripcion = M2.Material_Descripcion
+        WHERE
+            Material_Tipo = 'Madera' AND
+            Material_Nombre IS NOT NULL AND
+            Material_Descripcion IS NOT NULL
+
+END
+
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_rellenos
+AS
+BEGIN
+    INSERT INTO REJUNTE_SA.Relleno (id_material, id_densidad)
+        SELECT DISTINCT
+            M.id,
+            D.id
+        FROM [GD1C2025].[gd_esquema].[Maestra] M2
+        JOIN REJUNTE_SA.Densidad D ON D.densidad = M2.Relleno_Densidad
+        JOIN REJUNTE_SA.Material M ON M.nombre = M2.Material_Nombre AND M.descripcion = M2.Material_Descripcion
+        WHERE
+            Material_Tipo = 'Relleno' AND
+            Material_Nombre IS NOT NULL AND
+            Material_Descripcion IS NOT NULL
+
+END
+
+
 go
 exec REJUNTE_SA.migrar_provincias
 
@@ -712,3 +777,12 @@ exec REJUNTE_SA.migrar_material_tipo
 
 go
 exec REJUNTE_SA.migrar_materiales
+
+go
+exec REJUNTE_SA.migrar_telas
+
+go
+exec REJUNTE_SA.migrar_maderas
+
+go
+exec REJUNTE_SA.migrar_rellenos

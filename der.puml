@@ -276,6 +276,6 @@ DatosContacto ||--o{ Sucursal
 DatosContacto ||--o{ Cliente 
 DetalleCompra }o--|| Material
 EstadoPedido ||--o{ Pedido
-DetalleFactura }o--|| DetallePedido
+DetalleFactura |o--|| DetallePedido
 
 @enduml
