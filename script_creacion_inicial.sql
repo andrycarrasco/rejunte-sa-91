@@ -256,7 +256,7 @@ GO
 
 -- ok
 CREATE TABLE REJUNTE_SA.Medida (
-    id BIGINT PRIMARY KEY,
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
     alto DECIMAL(18, 2),
     ancho DECIMAL(18, 2),
     profundidad DECIMAL(18, 2),
@@ -427,6 +427,7 @@ ALTER TABLE REJUNTE_SA.Material
 ADD FOREIGN KEY(id_material_tipo) REFERENCES REJUNTE_SA.MaterialTipo(id);
 
 --Vista para migrar provincias y localidades
+GO
 CREATE VIEW REJUNTE_SA.VistaLugares AS
 SELECT Cliente_Provincia AS Provincia,  Cliente_Localidad as Localidad FROM [GD1C2025].[gd_esquema].[Maestra] WHERE Cliente_Provincia IS NOT NULL AND Cliente_Localidad IS NOT NULL
 UNION
@@ -512,7 +513,7 @@ AS
 BEGIN 
     INSERT INTO REJUNTE_SA.Proveedor (razon_social, cuit, direccion, id_datos_contacto, id_localidad)
     SELECT
-        m.Proveedor_RazonSocial,
+        DISTINCT m.Proveedor_RazonSocial,
         m.Proveedor_Cuit,
         m.Proveedor_Direccion,
         d.id,
@@ -738,6 +739,95 @@ BEGIN
 
 END
 
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_modelos
+AS
+BEGIN
+    INSERT INTO REJUNTE_SA.Modelo (id, modelo, descripcion, precio)
+        SELECT DISTINCT
+            M2.Sillon_Modelo_Codigo,
+            M2.Sillon_Modelo,
+            M2.Sillon_Modelo_Descripcion,
+            M2.Sillon_Modelo_Precio
+        FROM [GD1C2025].[gd_esquema].[Maestra] M2
+        WHERE
+            M2.Sillon_Modelo_Codigo IS NOT NULL AND
+            M2.Sillon_Modelo IS NOT NULL AND
+            M2.Sillon_Modelo_Descripcion IS NOT NULL
+END
+
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_medidas
+AS
+BEGIN
+    INSERT INTO REJUNTE_SA.Medida (alto, ancho, profundidad, precio)
+        SELECT DISTINCT
+            M2.Sillon_Medida_Alto,
+            M2.Sillon_Medida_Ancho,
+            M2.Sillon_Medida_Profundidad,
+            M2.Sillon_Medida_Precio
+        FROM [GD1C2025].[gd_esquema].[Maestra] M2
+        WHERE
+            M2.Sillon_Medida_Alto IS NOT NULL AND
+            M2.Sillon_Medida_Ancho IS NOT NULL AND
+            M2.Sillon_Medida_Profundidad IS NOT NULL
+END
+
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_sillon
+AS
+BEGIN
+    INSERT INTO REJUNTE_SA.Sillon (id_modelo, id_medida, id_madera, id_tela, id_relleno)
+        SELECT DISTINCT
+            M2.id,
+            M3.id,
+            M4.id,
+            T.id,
+            R.id
+        FROM [GD1C2025].[gd_esquema].[Maestra] M
+        JOIN REJUNTE_SA.Modelo M2 ON M2.modelo = M.Sillon_Modelo AND M2.descripcion = M.Sillon_Modelo_Descripcion
+        JOIN REJUNTE_SA.Medida M3 ON M3.alto = M.Sillon_Medida_Alto AND M3.ancho = M.Sillon_Medida_Ancho AND M3.profundidad = M.Sillon_Medida_Profundidad
+        JOIN REJUNTE_SA.Dureza D ON D.descripcion = M.Madera_Dureza
+        JOIN REJUNTE_SA.Color CT ON CT.descripcion = M.Tela_Color
+        JOIN REJUNTE_SA.Color CM ON CM.descripcion = M.Madera_Color
+        JOIN REJUNTE_SA.Densidad D2 ON D2.densidad = M.Relleno_Densidad
+        JOIN REJUNTE_SA.Madera M4 ON M4.id_dureza = D.id AND M4.id_color = CM.id
+        JOIN REJUNTE_SA.Tela T ON T.id_color = T.id_color AND CT.id = T.id_color
+        JOIN REJUNTE_SA.Relleno R ON R.id = D2.id
+        WHERE
+            M.Sillon_Medida_Alto IS NOT NULL AND
+            M.Sillon_Medida_Ancho IS NOT NULL AND
+            M.Sillon_Medida_Profundidad IS NOT NULL
+END
+
+
+SELECT DISTINCT
+    M2.id,
+    M3.id
+--     M4.id,
+--     T.id,
+--     R.id
+FROM [GD1C2025].[gd_esquema].[Maestra] M
+JOIN REJUNTE_SA.Modelo M2 ON M2.modelo = M.Sillon_Modelo AND M2.descripcion = M.Sillon_Modelo_Descripcion
+JOIN REJUNTE_SA.Medida M3 ON M3.alto = M.Sillon_Medida_Alto AND M3.ancho = M.Sillon_Medida_Ancho AND M3.profundidad = M.Sillon_Medida_Profundidad
+JOIN REJUNTE_SA.Dureza D ON D.descripcion = M.Madera_Dureza
+JOIN REJUNTE_SA.Color CM ON CM.descripcion = M.Madera_Color OR CM.descripcion = M.Tela_Color
+-- JOIN REJUNTE_SA.Color CT ON CT.descripcion = M.Tela_Color
+JOIN REJUNTE_SA.Textura T2 ON T2.descripcion = M.Tela_Textura
+JOIN REJUNTE_SA.Madera M4 ON M4.id_dureza = D.id AND M4.id_color = CM.id
+JOIN REJUNTE_SA.Tela T ON CM.id = T.id_color AND T.id_textura = T2.id
+JOIN REJUNTE_SA.Densidad D2 ON D2.densidad = M.Relleno_Densidad
+JOIN REJUNTE_SA.Relleno R ON R.id_densidad = D2.id
+
+select *
+from REJUNTE_SA.Relleno R2;
+
+
+select distinct Tela_Color
+from gd_esquema.Maestra M5;
+
+select *
+from REJUNTE_SA.Color C;
 
 go
 exec REJUNTE_SA.migrar_provincias
@@ -786,3 +876,11 @@ exec REJUNTE_SA.migrar_maderas
 
 go
 exec REJUNTE_SA.migrar_rellenos
+
+go
+exec REJUNTE_SA.migrar_modelos
+
+go
+exec REJUNTE_SA.migrar_medidas
+
+

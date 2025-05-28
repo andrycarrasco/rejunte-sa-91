@@ -3,3 +3,61 @@ Para correr el archivo .puml, deben tener instalado:
 - La extension PlanUML[https://marketplace.visualstudio.com/items?itemName=jebbs.plantuml]
 - Java[http://java.com/en/download/]
 - Graphviz[http://www.graphviz.org/download/]
+
+## Creacion de Tablas
+- [ ] Pedido
+- [ ] EstadoPedido
+- [ ] DetallePedido
+- [ ] CancelacionPedido
+- [ ] Sucursal
+- [ ] Cliente
+- [ ] DatosContacto
+- [ ] Localidad
+- [ ] Provincia
+- [ ] Proveedor
+- [ ] Factura
+- [ ] Compra
+- [ ] DetalleFactura
+- [ ] DetalleCompra
+- [ ] Envio
+- [ ] Sillon
+- [ ] Relleno
+- [ ] Densidad
+- [ ] Modelo
+- [ ] Medida
+- [ ] Tela
+- [ ] Textura
+- [ ] Madera
+- [ ] Dureza
+- [ ] MaterialTipo
+- [ ] Material
+- [ ] Color
+
+## Creacion de Procedures
+- [ ] Pedido
+- [ ] EstadoPedido
+- [ ] DetallePedido
+- [ ] CancelacionPedido
+- [x] Sucursal
+- [x] Cliente
+- [ ] DatosContacto
+- [x] Localidad
+- [x] Provincia
+- [x] Proveedor
+- [ ] Factura
+- [ ] Compra
+- [ ] DetalleFactura
+- [ ] DetalleCompra
+- [ ] Envio
+- [ ] Sillon
+- [x] Relleno
+- [x] Densidad
+- [x] Modelo
+- [x] Medida
+- [x] Tela
+- [x] Textura
+- [x] Madera
+- [x] Dureza
+- [x] MaterialTipo
+- [x] Material
+- [x] Color
