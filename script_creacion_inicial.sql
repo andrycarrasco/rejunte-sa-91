@@ -774,7 +774,7 @@ BEGIN
 END
 
 GO
-ALTER PROCEDURE REJUNTE_SA.migrar_sillon
+CREATE PROCEDURE REJUNTE_SA.migrar_sillon
 AS
 BEGIN
     WITH MaderaFiltrada AS (
