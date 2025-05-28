@@ -882,5 +882,3 @@ exec REJUNTE_SA.migrar_modelos
 
 go
 exec REJUNTE_SA.migrar_medidas
-
-prueba loclll
