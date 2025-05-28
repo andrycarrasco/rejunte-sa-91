@@ -146,7 +146,8 @@ GO
 
 -- ok
 CREATE TABLE REJUNTE_SA.Compra (
-    id DECIMAL(18, 0) PRIMARY KEY,
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    nro_compra DECIMAL(18, 0) PRIMARY KEY,
     id_sucursal BIGINT,
     id_proveedor BIGINT,
     fecha DATETIME2(6),
@@ -167,7 +168,7 @@ GO
 -- ok
 CREATE TABLE REJUNTE_SA.DetalleCompra (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
-    id_compra DECIMAL(18, 0),
+    id_compra BIGINT,
     id_material BIGINT,
     precio DECIMAL(18, 2),
     cantidad DECIMAL(18, 0),
@@ -177,9 +178,11 @@ GO
 
 -- ok
 CREATE TABLE REJUNTE_SA.Pedido (
-    id DECIMAL(18, 0) PRIMARY KEY,
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    nro_pedido DECIMAL(18, 0),
     id_sucursal BIGINT,
     id_cliente BIGINT,
+
     fecha DATETIME2(6),
     total DECIMAL(18, 2),
     id_estado_pedido BIGINT
@@ -196,7 +199,7 @@ GO
 -- ok
 CREATE TABLE REJUNTE_SA.CancelacionPedido (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
-    id_pedido DECIMAL(18, 0),
+    id_pedido BIGINT,
     fecha DATETIME2(6),
     motivo VARCHAR(255)
 )
@@ -205,7 +208,7 @@ GO
 -- ok
 CREATE TABLE REJUNTE_SA.DetallePedido (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
-    id_pedido DECIMAL(18, 0),
+    id_pedido BIGINT,
     id_sillon BIGINT,
     cantidad BIGINT,
     precio DECIMAL(18, 2),
@@ -544,34 +547,52 @@ BEGIN
             ON l.nombre = m.Sucursal_Localidad
         WHERE m.Sucursal_NroSucursal IS NOT NULL AND m.Sucursal_Direccion IS NOT NULL
 END
+GO
+--migrar estados pedido 
+CREATE PROCEDURE REJUNTE_SA.migrar_estados_pedido
+BEGIN 
+INSERT INTO REJUNTE_SA.EstadoPedido (descripcion)
+SELECT DISTINCT m.Pedido_Estado 
+FROM [GD1C2025].[gd_esquema].[Maestra] m 
+WHERE m.Pedido_Estado IS NOT NULL
+END 
+GO
 
 --migrar Pedido
+--modifico tabla pedido para evitar error de PK repetido
 GO
 CREATE PROCEDURE REJUNTE_SA.migrar_pedidos
 AS
 BEGIN
-    INSERT INTO REJUNTE_SA.Pedido (id, id_sucursal, id_cliente, fecha, total, id_estado_pedido)
+    INSERT INTO REJUNTE_SA.Pedido (nro_pedido, id_sucursal, id_cliente, fecha, total, id_estado_pedido)
         SELECT DISTINCT m.Pedido_Numero,
             s.id,
             c.id,
             m.Pedido_Fecha,
             m.Pedido_Total,
-            m.Pedido_Estado
+            ep.id
         FROM [GD1C2025].[gd_esquema].[Maestra] m
-        JOIN REJUNTE_SA.Cliente c
-            ON c.nombre = m.Cliente_Nombre AND c.apellido = m.Cliente_Apellido
         JOIN REJUNTE_SA.Sucursal s
-            ON s.id = m.Sucursal_NroSucursal
-        WHERE m.Pedido_Numero IS NOT NULL AND m.Pedido_Fecha IS NOT NULL AND m.Pedido_Total IS NOT NULL
+         ON s.numero_sucursal = m.Sucursal_NroSucursal AND s.direccion = m.Sucursal_Direccion 
+		 JOIN REJUNTE_SA.Localidad l
+		 ON l.nombre = m.Sucursal_Localidad
+		 JOIN REJUNTE_SA.Provincia p 
+		 ON p.nombre = m.Sucursal_Provincia
+		 JOIN REJUNTE_SA.Cliente c
+         ON c.nombre = m.Cliente_Nombre AND c.apellido = m.Cliente_Apellido AND c.dni = m.Cliente_Dni AND c.direccion = m.Cliente_Direccion 
+         WHERE m.Pedido_Numero IS NOT NULL AND m.Pedido_Fecha IS NOT NULL AND m.Pedido_Total IS NOT NULL
+         JOIN REJUNTE_SA.EstadoPedido ep
+         ON ep.descripcion = m.Pedido_Estado
 END
-
+GO
 
 --migrar compras
+--de nuevo modifico compras
 GO
 CREATE PROCEDURE REJUNTE_SA.migrar_compra
 AS
 BEGIN
-    INSERT INTO REJUNTE_SA.Compra (id, id_sucursal, id_proveedor, fecha, total)
+    INSERT INTO REJUNTE_SA.Compra (nro_compra, id_sucursal, id_proveedor, fecha, total)
         SELECT DISTINCT m.Compra_Numero,
             s.id,
             p.id,
@@ -579,13 +600,11 @@ BEGIN
             m.Compra_Total
         FROM [GD1C2025].[gd_esquema].[Maestra] m
         JOIN REJUNTE_SA.Sucursal s
-        ON s.id = m.Sucursal_NroSucursal
+        ON s.numero_sucursal = m.Sucursal_NroSucursal
         JOIN REJUNTE_SA.Proveedor p
         ON p.razon_social = m.Proveedor_RazonSocial AND p.cuit = m.Proveedor_Cuit
         WHERE m.Compra_Numero IS NOT NULL AND m.Compra_Fecha IS NOT NULL AND m.Compra_Total IS NOT NULL
 END
-
-
 --migrar factura 
 GO
 CREATE PROCEDURE REJUNTE_SA.migrar_facturas
