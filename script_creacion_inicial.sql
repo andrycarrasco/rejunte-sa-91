@@ -619,6 +619,24 @@ BEGIN
         WHERE Material_Tipo IS NOT NULL
 END
 
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_materiales
+AS
+BEGIN
+    INSERT INTO REJUNTE_SA.Material (id_material_tipo, nombre, descripcion, precio)
+        SELECT DISTINCT
+            MT.id,
+            M.Material_Nombre,
+            M.Material_Descripcion,
+            M.Material_Precio
+        FROM [GD1C2025].[gd_esquema].[Maestra] M
+        JOIN REJUNTE_SA.MaterialTipo MT ON MT.descripcion = M.Material_Tipo
+        WHERE
+            Material_Nombre IS NOT NULL AND
+            Material_Descripcion IS NOT NULL AND
+            Material_Precio IS NOT NULL
+END
+
 
 go
 exec REJUNTE_SA.migrar_provincias
@@ -655,3 +673,6 @@ exec REJUNTE_SA.migrar_textura
 
 go
 exec REJUNTE_SA.migrar_material_tipo
+
+go
+exec REJUNTE_SA.migrar_materiales
