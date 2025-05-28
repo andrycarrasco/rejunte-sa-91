@@ -111,6 +111,7 @@ entity "DetalleFactura" {
   + id : bigint(8) [PK]
   --
   id_factura : bigint(8) [FK]
+  id_detalle_pedido : bigint(8) [FK]
   precio : decimal(9)
   cantidad : decimal(9)
   sub_total : decimal(9)
@@ -275,5 +276,6 @@ DatosContacto ||--o{ Sucursal
 DatosContacto ||--o{ Cliente 
 DetalleCompra }o--|| Material
 EstadoPedido ||--o{ Pedido
+DetalleFactura }o--|| DetallePedido
 
 @enduml
