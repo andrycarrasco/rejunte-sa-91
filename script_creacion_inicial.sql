@@ -802,22 +802,42 @@ END
 
 
 SELECT DISTINCT
-    M2.id,
-    M3.id
---     M4.id,
---     T.id,
---     R.id
+    M2.id as id_modelo,
+    M3.id as id_medida,
+    Tela_Textura,
+    M4.id as id_madera,
+    T.id as id_textura,
+    R.id as id_relleno
 FROM [GD1C2025].[gd_esquema].[Maestra] M
-JOIN REJUNTE_SA.Modelo M2 ON M2.modelo = M.Sillon_Modelo AND M2.descripcion = M.Sillon_Modelo_Descripcion
-JOIN REJUNTE_SA.Medida M3 ON M3.alto = M.Sillon_Medida_Alto AND M3.ancho = M.Sillon_Medida_Ancho AND M3.profundidad = M.Sillon_Medida_Profundidad
-JOIN REJUNTE_SA.Dureza D ON D.descripcion = M.Madera_Dureza
-JOIN REJUNTE_SA.Color CM ON CM.descripcion = M.Madera_Color OR CM.descripcion = M.Tela_Color
+FULL JOIN REJUNTE_SA.Modelo M2 ON M2.modelo = M.Sillon_Modelo AND M2.descripcion = M.Sillon_Modelo_Descripcion
+FULL JOIN REJUNTE_SA.Medida M3 ON M3.alto = M.Sillon_Medida_Alto AND M3.ancho = M.Sillon_Medida_Ancho AND M3.profundidad = M.Sillon_Medida_Profundidad
+FULL JOIN REJUNTE_SA.Dureza D ON D.descripcion = M.Madera_Dureza
+FULL JOIN REJUNTE_SA.Color CM ON CM.descripcion = M.Madera_Color OR CM.descripcion = M.Tela_Color
 -- JOIN REJUNTE_SA.Color CT ON CT.descripcion = M.Tela_Color
-JOIN REJUNTE_SA.Textura T2 ON T2.descripcion = M.Tela_Textura
-JOIN REJUNTE_SA.Madera M4 ON M4.id_dureza = D.id AND M4.id_color = CM.id
-JOIN REJUNTE_SA.Tela T ON CM.id = T.id_color AND T.id_textura = T2.id
-JOIN REJUNTE_SA.Densidad D2 ON D2.densidad = M.Relleno_Densidad
-JOIN REJUNTE_SA.Relleno R ON R.id_densidad = D2.id
+FULL JOIN REJUNTE_SA.Textura T2 ON T2.descripcion = M.Tela_Textura
+FULL JOIN REJUNTE_SA.Densidad D2 ON D2.densidad = M.Relleno_Densidad
+FULL JOIN REJUNTE_SA.Madera M4 ON M4.id_dureza = D.id AND M4.id_color = CM.id
+FULL JOIN REJUNTE_SA.Tela T ON CM.id = T.id_color AND T.id_textura = T2.id
+FULL JOIN REJUNTE_SA.Relleno R ON R.id_densidad = D2.id
+where M2.id is not null
+order by 1 desc
+
+select
+    M6.Sillon_Codigo,
+    M6.Sillon_Medida_Alto,
+    M6.Sillon_Medida_Ancho,
+    M6.Sillon_Medida_Profundidad,
+    MAX(NULLIF(M6.Tela_Textura, null)),
+    MAX(NULLIF(M6.Tela_Color, null)),
+    MAX(NULLIF(M6.Madera_Color, null)),
+    MAX(NULLIF(M6.Madera_Dureza, null)),
+    MAX(NULLIF(M6.Relleno_Densidad, null))
+from gd_esquema.Maestra M6
+group by 
+    M6.Sillon_Codigo,
+    M6.Sillon_Medida_Alto,
+    M6.Sillon_Medida_Ancho,
+    M6.Sillon_Medida_Profundidad
 
 select *
 from REJUNTE_SA.Relleno R2;
