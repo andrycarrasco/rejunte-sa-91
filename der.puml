@@ -20,6 +20,24 @@ entity "EstadoPedido" {
   descripcion : nvarchar(255)
 }
 
+entity "DetallePedido" {
+  + id : bigint(8)
+  --
+  id_pedido : decimal(18) [FK]
+  id_sillon: bigint(8) [FK]
+  cantidad : bigint(8)
+  precio : decimal(9)
+  subtotal : decimal(9)
+}
+
+entity "CancelacionPedido" {
+  + id : bigint(8) [PK]
+  --
+  id_pedido : decimal(18) [FK]
+  fecha : datetime2(8)
+  motivo : nvarchar(255)
+}
+
 entity "Sucursal" {
   + id : bigint(8) [PK]
   --
@@ -60,108 +78,6 @@ entity "Provincia" {
   nombre : nvarchar(255)
 }
 
-' Entidades de transacción
-entity "Factura" {
-  + id : bigint(8) [PK]
-  --
-  id_cliente : bigint(8) [FK]
-  id_sucursal : bigint(8) [FK]
-  fecha : datetime2(8)
-  total : decimal(17)
-}
-
-entity "Envio" {
-  + id : bigint(8) [PK]
-  --
-  id_factura : bigint(8) [FK]
-  fecha_programada : datetime2(8)
-  fecha_entrega : date
-  importe_traslado : decimal(9)
-  importe_subida : decimal(9)
-}
-
-' Entidades de productos
-entity "Sillon" {
-  + id : bigint(8) [PK]
-  --
-  id_material : bigint(8) [FK]
-  id_modelo : bigint(8)
-  id_medida : bigint(8)
-}
-
-entity "Modelo" {
-  + id : bigint(8) [PK]
-  --
-  modelo : nvarchar(255)
-  descripcion : nvarchar(255)
-  precio : decimal(9)
-}
-
-entity "Medida" {
-  + id : bigint(8) [PK]
-  --
-  alto : decimal(9)
-  ancho : decimal(9)
-  profundidad : decimal(9)
-  precio : decimal(9)
-}
-
-' Entidades de materiales
-entity "Material" {
-  + id_material : bigint(8) [PK]
-  --
-  id_material_tipo : bigint(8) [FK]
-  nombre : nvarchar(255)
-  descripcion : nvarchar(255)
-  precio : decimal(17)
-}
-
-entity "MaterialTipo" {
-  + id : bigint(8) [PK]
-  --
-  descripcion : nvarchar(255)
-}
-
-entity "Color" {
-  + id : bigint(8) [PK]
-  --
-  descripcion : nvarchar(255)
-}
-
-entity "Tela" {
-  + id : bigint(8) [PK]
-  --
-  id_material : bigint(8) [FK]
-  id_color : nvarchar(255)
-  tela_textura : nvarchar(255)
-}
-
-entity "Relleno" {
-  + id : bigint(8) [PK]
-  --
-  id_material : bigint(8) [FK]
-  relleno_densidad : decimal(17)
-}
-
-entity "Madera" {
-  + id : bigint(8) [PK]
-  --
-  id_material : bigint(8) [FK]
-  id_color : nvarchar(255)
-  madera_dureza : nvarchar(255)
-}
-
-
-' Entidades de compras
-entity "Compra" {
-  + id : decimal(9) [PK]
-  --
-  id_sucursal : bigint(8) [FK]
-  id_proveedor : bigint(8) [FK]
-  fecha : datetime2(8)
-  total : decimal(9)
-}
-
 entity "Proveedor" {
   + id : bigint(8) [PK]
   --
@@ -172,14 +88,23 @@ entity "Proveedor" {
   cuit : nvarchar(255)
 }
 
-entity "DetallePedido" {
-  + id : bigint(8)
+' Entidades de transacción
+entity "Factura" {
+  + id : bigint(8) [PK]
   --
-  id_pedido : decimal(18) [FK]
-  id_sillon: bigint(8) [FK]
-  cantidad : bigint(8)
-  precio : decimal(9)
-  subtotal : decimal(9)
+  id_cliente : bigint(8) [FK]
+  id_sucursal : bigint(8) [FK]
+  fecha : datetime2(8)
+  total : decimal(17)
+}
+
+entity "Compra" {
+  + id : decimal(9) [PK]
+  --
+  id_sucursal : bigint(8) [FK]
+  id_proveedor : bigint(8) [FK]
+  fecha : datetime2(8)
+  total : decimal(9)
 }
 
 entity "DetalleFactura" {
@@ -201,11 +126,105 @@ entity "DetalleCompra" {
   subtotal : decimal(9)
 }
 
-entity "CancelacionPedido" {
-  + id_pedido : decimal(18) [PK]
+entity "Envio" {
+  + id : bigint(8) [PK]
   --
-  fecha : datetime2(8)
-  motivo : nvarchar(255)
+  id_factura : bigint(8) [FK]
+  fecha_programada : datetime2(8)
+  fecha_entrega : date
+  importe_traslado : decimal(9)
+  importe_subida : decimal(9)
+}
+
+' Entidades de productos
+entity "Sillon" {
+  + id : bigint(8) [PK]
+  --
+  id_modelo : bigint(8) [FK]
+  id_medida : bigint(8) [FK]
+  id_tela : bigint(8) [FK]
+  id_madera : bigint(8) [FK]
+  id_relleno : bigint(8) [FK]
+}
+
+entity "Relleno" {
+  + id : bigint(8) [PK]
+  --
+  id_material : bigint(8) [PK]
+  id_densidad : bigint(8) [FK]
+}
+
+entity "Densidad" {
+  + id : bigint(8) [PK]
+  --
+  descripcion : decimal(38,2)
+}
+
+entity "Modelo" {
+  + id : bigint(8) [PK]
+  --
+  modelo : nvarchar(255)
+  descripcion : nvarchar(255)
+  precio : decimal(9)
+}
+
+entity "Medida" {
+  + id : bigint(8) [PK]
+  --
+  alto : decimal(9)
+  ancho : decimal(9)
+  profundidad : decimal(9)
+  precio : decimal(9)
+}
+
+' Entidades de materiales
+entity "Tela" {
+  + id : bigint(8) [PK]
+  --
+  id_material : bigint(8) [PK]
+  id_color : bigint(8) [FK]
+  id_textura : bigint(8) [FK]
+}
+
+entity "Textura" {
+  + id : bigint(8) [PK]
+  --
+  descripcion : nvarchar(255)
+}
+
+entity "Madera" {
+  + id : bigint(8) [PK]
+  --
+  id_material : bigint(8) [PK]
+  id_color : bigint(8) [FK]
+  id_dureza : bigint(8) [FK]
+}
+
+entity "Dureza" {
+  + id : bigint(8) [PK]
+  --
+  descripcion : nvarchar(255)
+}
+
+entity "MaterialTipo" {
+  + id : bigint(8) [PK]
+  --
+  descripcion : nvarchar(255)
+}
+
+entity "Material" {
+  + id : bigint(8) [PK]
+  --
+  id_material_tipo : bigint(8) [FK]
+  nombre : nvarchar(255)
+  descripcion : nvarchar(255)
+  precio : decimal(17)
+}
+
+entity "Color" {
+  + id : bigint(8) [PK]
+  --
+  descripcion : nvarchar(255)
 }
 
 
@@ -215,41 +234,46 @@ Sucursal ||--o{ Pedido
 Sucursal ||--o{ Compra 
 Proveedor ||--o{ Compra 
 Pedido ||--o| CancelacionPedido
-Proveedor}o--||DatosContacto
+Proveedor }o--|| DatosContacto
 
-Cliente}o--||Localidad
-Sucursal}o--||Localidad
-Proveedor}o--||Localidad
-Localidad}o--||Provincia
+Cliente }o--|| Localidad
+Sucursal }o--|| Localidad
+Proveedor }o--|| Localidad
+Localidad }o--|| Provincia
 
-DetallePedido}o--||Sillon
+DetallePedido }o--|| Sillon
 Pedido ||--o{ DetallePedido 
 Factura ||--o{ DetalleFactura 
 Factura ||--|| Envio 
 Compra ||--o{ DetalleCompra 
 
-' Relaciones de materiales
-Material||--o|Relleno
-Material||--o|Madera
-Material||--o|Tela
-
-
-Madera}o--||Color
-Tela}o--||Color
-
-MaterialTipo||--o{Material
+Madera }o--|| Color
+Tela }o--|| Color
 
 Sillon }o--|| Modelo 
 Sillon }o--|| Medida
-Sillon }o--{ Material
-Factura}o--||Cliente
-Factura}o--||Sucursal
+Sillon }o--|| Tela
+Sillon }o--|| Madera
+Sillon }o--|| Relleno
+
+' Relaciones de materiales
+Material }o--|| MaterialTipo
+
+Material ||--o| Relleno
+Material ||--o| Madera
+Material ||--o| Tela
+
+Madera }o--|| Dureza
+Relleno }o--|| Densidad
+Tela }o--|| Textura
+
+Factura }o--|| Cliente
+Factura }o--|| Sucursal
 
 ' Relaciones de datos personales
 DatosContacto ||--o{ Sucursal 
 DatosContacto ||--o{ Cliente 
-DetalleCompra}o--||Material
-' DetallePedido||--||DetalleFactura
+DetalleCompra }o--|| Material
 EstadoPedido ||--o{ Pedido
 
 @enduml
