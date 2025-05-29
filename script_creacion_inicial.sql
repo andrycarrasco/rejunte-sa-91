@@ -527,8 +527,25 @@ BEGIN
     WHERE m.Proveedor_RazonSocial IS NOT NULL AND m.Proveedor_Cuit IS NOT NULL
 END 
 
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_sucursales
+AS
+BEGIN
+    INSERT INTO REJUNTE_SA.Sucursal (id, id_datos_contacto, direccion, id_localidad)
+    SELECT
+        DISTINCT Sucursal_NroSucursal,
+        dc.id,
+        Sucursal_Direccion,
+        l2.id
+    FROM gd_esquema.Maestra M4
+    JOIN REJUNTE_SA.Provincia P ON p.nombre = M4.Sucursal_Provincia
+    JOIN REJUNTE_SA.Localidad L2 ON l2.nombre = M4.Sucursal_Localidad AND L2.id_provincia = P.id
+    JOIN REJUNTE_SA.DatosContacto DC ON DC.mail = M4.Sucursal_mail AND DC.telefono = M4.Sucursal_telefono
+END
+GO
+	
 --migrar estados pedido 
-CREATE PROCEDURE REJUNTE_SA.migrar_estados_pedido
+CREATE PROCEDURE REJUNTE_SA.migrar_estados_pedido AS
 BEGIN 
 INSERT INTO REJUNTE_SA.EstadoPedido (descripcion)
 SELECT DISTINCT m.Pedido_Estado 
