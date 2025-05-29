@@ -136,8 +136,7 @@ GO
 
 -- ok
 CREATE TABLE REJUNTE_SA.Sucursal (
-    id BIGINT IDENTITY(1,1) PRIMARY KEY,
-    numero_sucursal BIGINT,
+    id BIGINT PRIMARY KEY,
     id_datos_contacto BIGINT,
     id_localidad BIGINT,
     direccion NVARCHAR(255)
@@ -485,25 +484,25 @@ GO
 CREATE PROCEDURE REJUNTE_SA.migrar_clientes
 AS
 BEGIN
-INSERT INTO REJUNTE_SA.Cliente (dni, nombre, apellido, fecha_nacimiento, direccion, id_datos_contacto, id_localidad)
-SELECT
-	distinct
-    m.Cliente_Dni,
-    m.Cliente_Nombre,
-    m.Cliente_Apellido,
-    m.Cliente_FechaNacimiento,
-    m.Cliente_Direccion,
-    d.id,
-    l.id AS num_localidad
-FROM [GD1C2025].[gd_esquema].[Maestra] m
-JOIN REJUNTE_SA.DatosContacto d
-    ON d.telefono = m.Cliente_Telefono AND d.mail = m.Cliente_Mail
-JOIN REJUNTE_SA.Provincia p
-    ON p.nombre = m.Cliente_Provincia
-JOIN REJUNTE_SA.Localidad l
-    ON l.nombre = m.Cliente_Localidad AND l.id_provincia = p.id
-WHERE m.Cliente_Dni IS NOT NULL
-AND m.Cliente_Direccion IS NOT NULL
+    INSERT INTO REJUNTE_SA.Cliente (dni, nombre, apellido, fecha_nacimiento, direccion, id_datos_contacto, id_localidad)
+    SELECT
+        distinct
+        m.Cliente_Dni,
+        m.Cliente_Nombre,
+        m.Cliente_Apellido,
+        m.Cliente_FechaNacimiento,
+        m.Cliente_Direccion,
+        d.id,
+        l.id AS num_localidad
+    FROM [GD1C2025].[gd_esquema].[Maestra] m
+    JOIN REJUNTE_SA.DatosContacto d
+        ON d.telefono = m.Cliente_Telefono AND d.mail = m.Cliente_Mail
+    JOIN REJUNTE_SA.Provincia p
+        ON p.nombre = m.Cliente_Provincia
+    JOIN REJUNTE_SA.Localidad l
+        ON l.nombre = m.Cliente_Localidad AND l.id_provincia = p.id
+    WHERE m.Cliente_Dni IS NOT NULL
+    AND m.Cliente_Direccion IS NOT NULL
 END
 
 --migrar proveedores
@@ -523,6 +522,8 @@ BEGIN
         ON d.telefono = m.Proveedor_Telefono AND d.mail = m.Proveedor_Mail
     JOIN REJUNTE_SA.Localidad l
         ON l.nombre = m.Proveedor_Localidad
+    JOIN REJUNTE_SA.Provincia P
+        ON P.id = L.id_provincia AND M.Proveedor_Provincia = P.nombre
     WHERE m.Proveedor_RazonSocial IS NOT NULL AND m.Proveedor_Cuit IS NOT NULL
 END 
 
@@ -541,6 +542,7 @@ GO
 CREATE PROCEDURE REJUNTE_SA.migrar_pedidos
 AS
 BEGIN
+
     INSERT INTO REJUNTE_SA.Pedido (nro_pedido, id_sucursal, id_cliente, fecha, total, id_estado_pedido)
         SELECT DISTINCT m.Pedido_Numero,
             s.id,
@@ -568,7 +570,7 @@ GO
 CREATE PROCEDURE REJUNTE_SA.migrar_compra
 AS
 BEGIN
-    INSERT INTO REJUNTE_SA.Compra (nro_compra, id_sucursal, id_proveedor, fecha, total)
+    INSERT INTO REJUNTE_SA.Compra (id, id_sucursal, id_proveedor, fecha, total)
         SELECT DISTINCT m.Compra_Numero,
             s.id,
             p.id,
@@ -590,17 +592,21 @@ CREATE PROCEDURE REJUNTE_SA.migrar_facturas
 AS
 BEGIN 
     INSERT INTO REJUNTE_SA.Factura (id, id_sucursal, id_cliente, fecha, total)
-        SELECT
-            DISTINCT m.Factura_numero,
-            s.id,
-            c.id,
-            m.Factura_Fecha,
-            m.Factura_Total
-        FROM [GD1C2025].[gd_esquema].[Maestra] m
-        JOIN REJUNTE_SA.Cliente c
-            ON c.nombre = m.Cliente_Nombre AND c.apellido = m.Cliente_Apellido
-        JOIN REJUNTE_SA.Sucursal s
-            ON s.id = m.Sucursal_NroSucursal
+    SELECT
+        DISTINCT m.Factura_numero,
+        s.id,
+        c.id,
+        m.Factura_Fecha,
+        m.Factura_Total
+    FROM [GD1C2025].[gd_esquema].[Maestra] m
+    JOIN REJUNTE_SA.Cliente c
+        ON c.nombre = m.Cliente_Nombre AND c.apellido = m.Cliente_Apellido AND C.dni = M.Cliente_Dni
+    JOIN REJUNTE_SA.Sucursal s
+        ON s.id = m.Sucursal_NroSucursal
+    WHERE
+        m.Factura_Numero IS NOT NULL AND
+        m.Factura_Fecha IS NOT NULL AND
+        m.Factura_Total IS NOT NULL
 END
 
 
