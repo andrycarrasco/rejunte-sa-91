@@ -86,31 +86,27 @@ END
 -- FIN: DROP Views
 
 --TABLES
-
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Datos_Contacto (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     telefono NVARCHAR(255),
     mail NVARCHAR(255)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Localidad (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     id_provincia BIGINT,
     nombre NVARCHAR(255)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Provincia (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     nombre NVARCHAR(255)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Proveedor (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     razon_social NVARCHAR(255),
@@ -119,9 +115,8 @@ CREATE TABLE REJUNTE_SA.Proveedor (
     id_datos_contacto BIGINT,
     id_localidad BIGINT
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Cliente (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     dni BIGINT UNIQUE,
@@ -132,18 +127,16 @@ CREATE TABLE REJUNTE_SA.Cliente (
     id_datos_contacto BIGINT,
     id_localidad BIGINT
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Sucursal (
     id BIGINT PRIMARY KEY,
     id_datos_contacto BIGINT,
     id_localidad BIGINT,
     direccion NVARCHAR(255)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Compra (
     id DECIMAL(18, 0) PRIMARY KEY,
     id_sucursal BIGINT,
@@ -151,9 +144,8 @@ CREATE TABLE REJUNTE_SA.Compra (
     fecha DATETIME2(6),
     total DECIMAL(18, 2)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Material (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     id_material_tipo BIGINT,
@@ -161,9 +153,8 @@ CREATE TABLE REJUNTE_SA.Material (
     descripcion NVARCHAR(255),
     precio DECIMAL(38, 2)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Detalle_Compra (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     id_compra DECIMAL(18, 0),
@@ -172,9 +163,8 @@ CREATE TABLE REJUNTE_SA.Detalle_Compra (
     cantidad DECIMAL(18, 0),
     subtotal DECIMAL(18, 2)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Pedido (
     id DECIMAL(18, 0) PRIMARY KEY,
     id_sucursal BIGINT,
@@ -183,25 +173,22 @@ CREATE TABLE REJUNTE_SA.Pedido (
     total DECIMAL(18, 2),
     id_estado_pedido BIGINT
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Estado_Pedido (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     descripcion NVARCHAR(255)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Cancelacion_Pedido (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     id_pedido DECIMAL(18, 0),
     fecha DATETIME2(6),
     motivo VARCHAR(255)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Detalle_Pedido (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     id_pedido DECIMAL(18, 0),
@@ -210,9 +197,8 @@ CREATE TABLE REJUNTE_SA.Detalle_Pedido (
     precio DECIMAL(18, 2),
     subtotal DECIMAL(18, 2),
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Factura (
     id BIGINT PRIMARY KEY,
     id_sucursal BIGINT,
@@ -220,9 +206,8 @@ CREATE TABLE REJUNTE_SA.Factura (
     fecha DATETIME2(6),
     total DECIMAL(38, 2)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Envio (
     id decimal(18,0) PRIMARY KEY,
     id_factura BIGINT,
@@ -232,9 +217,8 @@ CREATE TABLE REJUNTE_SA.Envio (
     importe_subida DECIMAL(18, 2),
     importe_total DECIMAL(18, 2)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Detalle_Factura (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     id_factura BIGINT,
@@ -243,18 +227,16 @@ CREATE TABLE REJUNTE_SA.Detalle_Factura (
     cantidad DECIMAL(18, 0),
     sub_total DECIMAL(18, 2)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Modelo (
     id BIGINT PRIMARY KEY,
     modelo NVARCHAR(255),
     descripcion NVARCHAR(255),
     precio DECIMAL(18, 2)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Medida (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     alto DECIMAL(18, 2),
@@ -262,30 +244,27 @@ CREATE TABLE REJUNTE_SA.Medida (
     profundidad DECIMAL(18, 2),
     precio DECIMAL(18, 2)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Tela (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     id_color BIGINT,
     id_textura BIGINT
 )
-GO
 
+GO
 CREATE TABLE REJUNTE_SA.Textura (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     descripcion NVARCHAR(255)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Relleno (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     densidad DECIMAL(38,2)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Madera (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     id_color BIGINT,
@@ -318,9 +297,8 @@ CREATE TABLE REJUNTE_SA.Dureza (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     descripcion NVARCHAR(255)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Sillon (
     id BIGINT PRIMARY KEY,
     id_modelo BIGINT,
@@ -329,24 +307,23 @@ CREATE TABLE REJUNTE_SA.Sillon (
     id_tela BIGINT, 
     id_relleno BIGINT
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Material_Tipo (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     descripcion NVARCHAR(255)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Color (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     descripcion NVARCHAR(255)
 )
-GO
+
 
 
 --FOREIGN KEYS
+GO
 ALTER TABLE REJUNTE_SA.Localidad
 ADD FOREIGN KEY (id_provincia) REFERENCES REJUNTE_SA.Provincia(id);
 
@@ -623,10 +600,10 @@ BEGIN
 END
 
 GO
-CREATE PROCEDURE REJUNTE_SA.migrar_cancelacionPedido 
+CREATE PROCEDURE REJUNTE_SA.migrar_cancelacion_pedido
 AS
 BEGIN 
-    INSERT INTO REJUNTE_SA.CancelacionPedido (id_pedido, fecha, motivo)
+    INSERT INTO REJUNTE_SA.Cancelacion_Pedido (id_pedido, fecha, motivo)
     SELECT 
         DISTINCT p.id, 
         m.Pedido_Cancelacion_Fecha, 
@@ -900,6 +877,50 @@ BEGIN
     ORDER BY Pedido_Numero, Detalle_Pedido_Precio
 END
 
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_materiales_x_tela
+AS
+BEGIN
+    INSERT INTO REJUNTE_SA.Material_X_Tela(id_material, id_tela)
+    SELECT
+        DISTINCT M2.id,
+        T.id
+    FROM [GD1C2025].gd_esquema.Maestra M
+    JOIN REJUNTE_SA.Material M2 ON M2.nombre = M.Material_Nombre AND M2.descripcion = M.Material_Descripcion AND M2.precio = M.Material_Precio
+    join REJUNTE_SA.Textura TX on M.Tela_Textura = TX.descripcion
+    JOIN REJUNTE_SA.Color C ON M.Tela_Color = C.descripcion
+    JOIN REJUNTE_SA.Tela T ON T.id_color = C.id AND T.id_textura = TX.id
+END
+
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_materiales_x_madera
+AS
+BEGIN
+    INSERT INTO REJUNTE_SA.Material_X_Madera(id_material, id_madera)
+    SELECT
+        DISTINCT M2.id,
+        M3.id
+    FROM [GD1C2025].gd_esquema.Maestra M
+    JOIN REJUNTE_SA.Material M2 ON M2.nombre = M.Material_Nombre AND M2.descripcion = M.Material_Descripcion AND M2.precio = M.Material_Precio
+    join REJUNTE_SA.Dureza D on M.Madera_Dureza = D.descripcion
+    JOIN REJUNTE_SA.Color C ON M.Madera_Color = C.descripcion
+    JOIN REJUNTE_SA.Madera M3 ON M3.id_color = C.id AND M3.id_dureza = D.id
+END
+
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_materiales_x_relleno
+AS
+BEGIN
+    INSERT INTO REJUNTE_SA.Material_X_Relleno(id_material, id_relleno)
+    SELECT
+        DISTINCT M2.id,
+        R.id
+    FROM [GD1C2025].gd_esquema.Maestra M
+    JOIN REJUNTE_SA.Material M2 ON M2.nombre = M.Material_Nombre AND M2.descripcion = M.Material_Descripcion AND M2.precio = M.Material_Precio
+    JOIN REJUNTE_SA.Relleno R ON R.densidad = M.Relleno_Densidad
+END
+
+
 -- INICIO EXECS PROCEDURES
 go
 exec REJUNTE_SA.migrar_provincias
@@ -956,6 +977,15 @@ go
 exec REJUNTE_SA.migrar_sillon
 
 go
+exec REJUNTE_SA.migrar_materiales_x_madera
+
+go
+exec REJUNTE_SA.migrar_materiales_x_relleno
+
+go
+exec REJUNTE_SA.migrar_materiales_x_tela
+
+go
 exec REJUNTE_SA.migrar_estados_pedido
 
 go
@@ -966,3 +996,6 @@ exec REJUNTE_SA.migrar_compra
 
 go
 exec REJUNTE_SA.migrar_detalle_pedido
+
+go
+exec REJUNTE_SA.migrar_cancelacion_pedido
