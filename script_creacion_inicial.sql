@@ -1,5 +1,5 @@
 USE GD1C2025 
-IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'REJUNTE_SA')
+IF NOT EXISTS (SELECT * FROM [GD1C2025].sys.schemas WHERE name = 'REJUNTE_SA')
 BEGIN 
 	EXEC ('CREATE SCHEMA REJUNTE_SA AUTHORIZATION dbo')
 END
@@ -10,14 +10,14 @@ GO
 DECLARE @sql NVARCHAR(MAX) = N'';
 SELECT @sql += N'ALTER TABLE ' + QUOTENAME(OBJECT_SCHEMA_NAME(parent_object_id)) + '.' + QUOTENAME(OBJECT_NAME(parent_object_id)) +
     ' DROP CONSTRAINT ' + QUOTENAME(name) + ';'
-FROM sys.foreign_keys;
+FROM [GD1C2025].sys.foreign_keys;
 EXEC sp_executesql @sql;
 
 -- Borra todas las tablas en el esquema REJUNTESA
 GO
 DECLARE @dropTableSQL NVARCHAR(MAX) = N'';
 SELECT @dropTableSQL += 'DROP TABLE ' + QUOTENAME(OBJECT_SCHEMA_NAME(object_id)) + '.' + QUOTENAME(name) + '; '
-FROM sys.tables
+FROM [GD1C2025].sys.tables
 WHERE SCHEMA_NAME(schema_id) = 'REJUNTE_SA';
 EXEC sp_executesql @dropTableSQL;
 
@@ -25,7 +25,7 @@ EXEC sp_executesql @dropTableSQL;
 GO
 IF EXISTS(	select
 		*
-	from sys.sysobjects
+	from [GD1C2025].sys.sysobjects
 	where xtype = 'P' and name like 'migrar_%'
 	)
 	BEGIN
@@ -48,7 +48,7 @@ IF EXISTS(	select
 GO
 IF EXISTS (
     SELECT *
-    FROM sys.objects
+    FROM [GD1C2025].sys.objects
     WHERE type IN ('FN', 'IF', 'TF')
 )
 BEGIN
@@ -57,7 +57,7 @@ BEGIN
     DECLARE @sql NVARCHAR(MAX) = N'';
     SELECT @sql += N'
     DROP FUNCTION ' + QUOTENAME(SCHEMA_NAME(schema_id)) + '.' + QUOTENAME(name) + ';'
-    FROM sys.objects
+    FROM [GD1C2025].sys.objects
     WHERE type IN ('FN', 'IF', 'TF')
     --PRINT @sql;
     EXEC sp_executesql @sql;
@@ -69,7 +69,7 @@ END
 GO
 IF EXISTS (
     SELECT *
-    FROM sys.objects
+    FROM [GD1C2025].sys.objects
     WHERE type = 'V'
 )
 BEGIN
@@ -78,7 +78,7 @@ BEGIN
     DECLARE @sql NVARCHAR(MAX) = N'';
     SELECT @sql += N'
     DROP VIEW ' + QUOTENAME(SCHEMA_NAME(schema_id)) + '.' + QUOTENAME(name) + ';'
-    FROM sys.objects
+    FROM [GD1C2025].sys.objects
     WHERE type = 'V';
     --PRINT @sql;
     EXEC sp_executesql @sql;
@@ -560,45 +560,47 @@ BEGIN
     JOIN REJUNTE_SA.Localidad L2 ON l2.nombre = M4.Sucursal_Localidad AND L2.id_provincia = P.id
     JOIN REJUNTE_SA.Datos_Contacto DC ON DC.mail = M4.Sucursal_mail AND DC.telefono = M4.Sucursal_telefono
 END
-GO
+
 	
---migrar estados pedido 
-CREATE PROCEDURE REJUNTE_SA.migrar_estados_pedido AS
-BEGIN 
-INSERT INTO REJUNTE_SA.EstadoPedido (descripcion)
-SELECT DISTINCT m.Pedido_Estado 
-FROM [GD1C2025].[gd_esquema].[Maestra] m 
-WHERE m.Pedido_Estado IS NOT NULL
-END 
+--migrar estados pedido
 GO
+CREATE PROCEDURE REJUNTE_SA.migrar_estados_pedido
+AS
+BEGIN 
+    INSERT INTO REJUNTE_SA.Estado_Pedido (descripcion)
+    SELECT DISTINCT m.Pedido_Estado
+    FROM [GD1C2025].[gd_esquema].[Maestra] m
+    WHERE m.Pedido_Estado IS NOT NULL
+END
 
 --migrar Pedido
 GO
 CREATE PROCEDURE REJUNTE_SA.migrar_pedidos
 AS
 BEGIN
-
-    INSERT INTO REJUNTE_SA.Pedido (nro_pedido, id_sucursal, id_cliente, fecha, total, id_estado_pedido)
-        SELECT DISTINCT m.Pedido_Numero,
-            s.id,
-            c.id,
-            m.Pedido_Fecha,
-            m.Pedido_Total,
-            ep.id
-        FROM [GD1C2025].[gd_esquema].[Maestra] m
-        JOIN REJUNTE_SA.Sucursal s
-         ON s.numero_sucursal = m.Sucursal_NroSucursal AND s.direccion = m.Sucursal_Direccion 
-		 JOIN REJUNTE_SA.Localidad l
-		 ON l.nombre = m.Sucursal_Localidad AND l.id = s.id_localidad
-		 JOIN REJUNTE_SA.Provincia p 
-		 ON p.nombre = m.Sucursal_Provincia AND p.id = l.id_provincia
-		 JOIN REJUNTE_SA.Cliente c
-         ON c.nombre = m.Cliente_Nombre AND c.apellido = m.Cliente_Apellido AND c.dni = m.Cliente_Dni AND c.direccion = m.Cliente_Direccion 
-         JOIN REJUNTE_SA.EstadoPedido ep
-         ON ep.descripcion = m.Pedido_Estado
-         WHERE m.Pedido_Numero IS NOT NULL AND m.Pedido_Fecha IS NOT NULL AND m.Pedido_Total IS NOT NULL
+    INSERT INTO REJUNTE_SA.Pedido (id, id_sucursal, id_cliente, fecha, total, id_estado_pedido)
+    SELECT DISTINCT m.Pedido_Numero,
+        s.id,
+        c.id,
+        m.Pedido_Fecha,
+        m.Pedido_Total,
+        ep.id
+    FROM [GD1C2025].[gd_esquema].[Maestra] m
+    JOIN REJUNTE_SA.Sucursal s
+        ON s.id = m.Sucursal_NroSucursal AND s.direccion = m.Sucursal_Direccion
+    JOIN REJUNTE_SA.Localidad l
+        ON l.nombre = m.Sucursal_Localidad AND l.id = s.id_localidad
+    JOIN REJUNTE_SA.Provincia p
+        ON p.nombre = m.Sucursal_Provincia AND p.id = l.id_provincia
+    JOIN REJUNTE_SA.Cliente c
+        ON c.nombre = m.Cliente_Nombre AND c.apellido = m.Cliente_Apellido AND c.dni = m.Cliente_Dni AND c.direccion = m.Cliente_Direccion
+    JOIN REJUNTE_SA.Estado_Pedido ep
+        ON ep.descripcion = m.Pedido_Estado
+    WHERE
+        m.Pedido_Numero IS NOT NULL AND
+        m.Pedido_Fecha IS NOT NULL AND
+        m.Pedido_Total IS NOT NULL
 END
-GO
 
 --migrar compras
 GO
@@ -613,13 +615,11 @@ BEGIN
             m.Compra_Total
         FROM [GD1C2025].[gd_esquema].[Maestra] m
         JOIN REJUNTE_SA.Sucursal s
-        ON s.numero_sucursal = m.Sucursal_NroSucursal
+        ON s.id = m.Sucursal_NroSucursal
         JOIN REJUNTE_SA.Proveedor p
         ON p.razon_social = m.Proveedor_RazonSocial AND p.cuit = m.Proveedor_Cuit
         WHERE m.Compra_Numero IS NOT NULL AND m.Compra_Fecha IS NOT NULL AND m.Compra_Total IS NOT NULL
 END
-GO
-
 
 --migrar factura 
 GO
@@ -844,6 +844,24 @@ BEGIN
         M.Sillon_Medida_Profundidad IS NOT NULL
 END
 
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_detalle_pedido
+AS
+BEGIN
+    INSERT INTO REJUNTE_SA.Detalle_Pedido(id_pedido, id_sillon, cantidad, precio, subtotal)
+    SELECT
+        DISTINCT M.Pedido_Numero,
+        M.Sillon_Codigo,
+        M.Detalle_Pedido_Cantidad,
+        M.Detalle_Pedido_Precio,
+        M.Detalle_Pedido_SubTotal
+    FROM [GD1C2025].gd_esquema.Maestra M
+    WHERE
+        M.Pedido_Numero IS NOT NULL AND
+        M.Sillon_Codigo IS NOT NULL
+    ORDER BY Pedido_Numero, Detalle_Pedido_Precio
+END
+
 -- INICIO EXECS PROCEDURES
 go
 exec REJUNTE_SA.migrar_provincias
@@ -899,3 +917,14 @@ exec REJUNTE_SA.migrar_medidas
 go
 exec REJUNTE_SA.migrar_sillon
 
+go
+exec REJUNTE_SA.migrar_estados_pedido
+
+go
+exec REJUNTE_SA.migrar_pedidos
+
+go
+exec REJUNTE_SA.migrar_compra
+
+go
+exec REJUNTE_SA.migrar_detalle_pedido
