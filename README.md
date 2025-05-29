@@ -34,22 +34,22 @@ Para correr el archivo .puml, deben tener instalado:
 - [ ] Color
 
 ## Creacion de Procedures
-- [ ] Pedido
+- [x] Pedido
 - [ ] EstadoPedido
 - [ ] DetallePedido
 - [ ] CancelacionPedido
 - [x] Sucursal
 - [x] Cliente
-- [ ] DatosContacto
+- [x] DatosContacto
 - [x] Localidad
 - [x] Provincia
 - [x] Proveedor
-- [ ] Factura
-- [ ] Compra
+- [x] Factura
+- [x] Compra
 - [ ] DetalleFactura
 - [ ] DetalleCompra
 - [ ] Envio
-- [ ] Sillon
+- [x] Sillon
 - [x] Relleno
 - [x] Densidad
 - [x] Modelo
