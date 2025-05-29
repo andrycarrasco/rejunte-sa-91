@@ -88,7 +88,7 @@ END
 --TABLES
 
 -- ok
-CREATE TABLE REJUNTE_SA.DatosContacto (
+CREATE TABLE REJUNTE_SA.Datos_Contacto (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     telefono NVARCHAR(255),
     mail NVARCHAR(255)
@@ -164,7 +164,7 @@ CREATE TABLE REJUNTE_SA.Material (
 GO
 
 -- ok
-CREATE TABLE REJUNTE_SA.DetalleCompra (
+CREATE TABLE REJUNTE_SA.Detalle_Compra (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     id_compra DECIMAL(18, 0),
     id_material BIGINT,
@@ -186,14 +186,14 @@ CREATE TABLE REJUNTE_SA.Pedido (
 GO
 
 -- ok
-CREATE TABLE REJUNTE_SA.EstadoPedido (
+CREATE TABLE REJUNTE_SA.Estado_Pedido (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     descripcion NVARCHAR(255)
 )
 GO
 
 -- ok
-CREATE TABLE REJUNTE_SA.CancelacionPedido (
+CREATE TABLE REJUNTE_SA.Cancelacion_Pedido (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     id_pedido DECIMAL(18, 0),
     fecha DATETIME2(6),
@@ -202,7 +202,7 @@ CREATE TABLE REJUNTE_SA.CancelacionPedido (
 GO
 
 -- ok
-CREATE TABLE REJUNTE_SA.DetallePedido (
+CREATE TABLE REJUNTE_SA.Detalle_Pedido (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     id_pedido DECIMAL(18, 0),
     id_sillon BIGINT,
@@ -234,7 +234,7 @@ CREATE TABLE REJUNTE_SA.Envio (
 GO
 
 -- ok
-CREATE TABLE REJUNTE_SA.DetalleFactura (
+CREATE TABLE REJUNTE_SA.Detalle_Factura (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     id_factura BIGINT,
     id_detalle_pedido BIGINT,
@@ -266,7 +266,6 @@ GO
 -- ok
 CREATE TABLE REJUNTE_SA.Tela (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
-    id_material BIGINT,
     id_color BIGINT,
     id_textura BIGINT
 )
@@ -281,13 +280,6 @@ GO
 -- ok
 CREATE TABLE REJUNTE_SA.Relleno (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
-    id_material BIGINT,
-    id_densidad BIGINT
-)
-GO
-
-CREATE TABLE REJUNTE_SA.Densidad (
-    id BIGINT IDENTITY(1,1) PRIMARY KEY,
     densidad DECIMAL(38,2)
 )
 GO
@@ -295,12 +287,32 @@ GO
 -- ok
 CREATE TABLE REJUNTE_SA.Madera (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
-    id_material BIGINT,
     id_color BIGINT,
     id_dureza BIGINT
 )
-GO
 
+GO
+CREATE TABLE REJUNTE_SA.Material_X_Tela (
+    id_material BIGINT,
+    id_tela BIGINT,
+    PRIMARY KEY (id_material, id_tela)
+)
+
+GO
+CREATE TABLE REJUNTE_SA.Material_X_Madera (
+    id_material BIGINT,
+    id_madera BIGINT,
+    PRIMARY KEY (id_material, id_madera)
+)
+
+GO
+CREATE TABLE REJUNTE_SA.Material_X_Relleno (
+    id_material BIGINT,
+    id_relleno BIGINT,
+    PRIMARY KEY (id_material, id_relleno)
+)
+
+GO
 CREATE TABLE REJUNTE_SA.Dureza (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     descripcion NVARCHAR(255)
@@ -319,7 +331,7 @@ CREATE TABLE REJUNTE_SA.Sillon (
 GO
 
 -- ok
-CREATE TABLE REJUNTE_SA.MaterialTipo (
+CREATE TABLE REJUNTE_SA.Material_Tipo (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     descripcion NVARCHAR(255)
 )
@@ -338,18 +350,18 @@ ALTER TABLE REJUNTE_SA.Localidad
 ADD FOREIGN KEY (id_provincia) REFERENCES REJUNTE_SA.Provincia(id);
 
 ALTER TABLE REJUNTE_SA.Proveedor
-ADD FOREIGN KEY (id_datos_contacto) REFERENCES REJUNTE_SA.DatosContacto(id);
+ADD FOREIGN KEY (id_datos_contacto) REFERENCES REJUNTE_SA.Datos_Contacto(id);
 ALTER TABLE REJUNTE_SA.Proveedor
 ADD FOREIGN KEY (id_localidad) REFERENCES REJUNTE_SA.Localidad(id);
 
 ALTER TABLE REJUNTE_SA.Cliente
-ADD FOREIGN KEY (id_datos_contacto) REFERENCES REJUNTE_SA.DatosContacto(id);
+ADD FOREIGN KEY (id_datos_contacto) REFERENCES REJUNTE_SA.Datos_Contacto(id);
 ALTER TABLE REJUNTE_SA.Cliente
 ADD FOREIGN KEY (id_localidad) REFERENCES REJUNTE_SA.Localidad(id);
 
 
 ALTER TABLE REJUNTE_SA.Sucursal
-ADD FOREIGN KEY (id_datos_contacto) REFERENCES REJUNTE_SA.DatosContacto(id);
+ADD FOREIGN KEY (id_datos_contacto) REFERENCES REJUNTE_SA.Datos_Contacto(id);
 ALTER TABLE REJUNTE_SA.Sucursal
 ADD FOREIGN KEY (id_localidad) REFERENCES REJUNTE_SA.Localidad(id);
 
@@ -358,9 +370,9 @@ ADD FOREIGN KEY (id_sucursal) REFERENCES REJUNTE_SA.Sucursal(id);
 ALTER TABLE REJUNTE_SA.Compra
 ADD FOREIGN KEY (id_proveedor) REFERENCES REJUNTE_SA.Proveedor(id);
 
-ALTER TABLE REJUNTE_SA.DetalleCompra
+ALTER TABLE REJUNTE_SA.Detalle_Compra
 ADD FOREIGN KEY (id_compra) REFERENCES REJUNTE_SA.Compra(id);
-ALTER TABLE REJUNTE_SA.DetalleCompra
+ALTER TABLE REJUNTE_SA.Detalle_Compra
 ADD FOREIGN KEY (id_material) REFERENCES REJUNTE_SA.Material(id);
 
 ALTER TABLE REJUNTE_SA.Pedido
@@ -368,14 +380,14 @@ ADD FOREIGN KEY (id_sucursal) REFERENCES REJUNTE_SA.Sucursal(id);
 ALTER TABLE REJUNTE_SA.Pedido
 ADD FOREIGN KEY (id_cliente) REFERENCES REJUNTE_SA.Cliente(id);
 ALTER TABLE REJUNTE_SA.Pedido
-ADD FOREIGN KEY (id_estado_pedido) REFERENCES REJUNTE_SA.EstadoPedido(id);
+ADD FOREIGN KEY (id_estado_pedido) REFERENCES REJUNTE_SA.Estado_Pedido(id);
 
-ALTER TABLE REJUNTE_SA.CancelacionPedido
+ALTER TABLE REJUNTE_SA.Cancelacion_Pedido
 ADD FOREIGN KEY (id_pedido) REFERENCES REJUNTE_SA.Pedido(id);
 
-ALTER TABLE REJUNTE_SA.DetallePedido
+ALTER TABLE REJUNTE_SA.Detalle_Pedido
 ADD FOREIGN KEY (id_pedido) REFERENCES REJUNTE_SA.Pedido(id);
-ALTER TABLE REJUNTE_SA.DetallePedido
+ALTER TABLE REJUNTE_SA.Detalle_Pedido
 ADD FOREIGN KEY (id_sillon) REFERENCES REJUNTE_SA.Sillon(id);
 
 
@@ -387,10 +399,10 @@ ADD FOREIGN KEY (id_cliente) REFERENCES REJUNTE_SA.Cliente(id);
 ALTER TABLE REJUNTE_SA.Envio
 ADD FOREIGN KEY (id_factura) REFERENCES REJUNTE_SA.Factura(id);
 
-ALTER TABLE REJUNTE_SA.DetalleFactura
+ALTER TABLE REJUNTE_SA.Detalle_Factura
 ADD FOREIGN KEY (id_factura) REFERENCES REJUNTE_SA.Factura(id);
-ALTER TABLE REJUNTE_SA.DetalleFactura
-ADD FOREIGN KEY(id_detalle_pedido) REFERENCES REJUNTE_SA.DetallePedido(id);
+ALTER TABLE REJUNTE_SA.Detalle_Factura
+ADD FOREIGN KEY(id_detalle_pedido) REFERENCES REJUNTE_SA.Detalle_Pedido(id);
 
 ALTER TABLE REJUNTE_SA.Sillon
 ADD FOREIGN KEY (id_modelo) REFERENCES REJUNTE_SA.Modelo(id);
@@ -404,26 +416,32 @@ ALTER TABLE REJUNTE_SA.Sillon
 ADD FOREIGN KEY (id_relleno) REFERENCES REJUNTE_SA.Relleno(id);
 
 ALTER TABLE REJUNTE_SA.Tela
-ADD FOREIGN KEY(id_material) REFERENCES REJUNTE_SA.Material(id);
-ALTER TABLE REJUNTE_SA.Tela
 ADD FOREIGN KEY(id_color) REFERENCES REJUNTE_SA.Color(id);
 ALTER TABLE REJUNTE_SA.Tela
 ADD FOREIGN KEY(id_textura) REFERENCES REJUNTE_SA.Textura(id);
 
 ALTER TABLE REJUNTE_SA.Madera
-ADD FOREIGN KEY(id_material) REFERENCES REJUNTE_SA.Material(id);
-ALTER TABLE REJUNTE_SA.Madera
 ADD FOREIGN KEY(id_color) REFERENCES REJUNTE_SA.Color(id);
 ALTER TABLE REJUNTE_SA.Madera
 ADD FOREIGN KEY(id_dureza) REFERENCES REJUNTE_SA.Dureza(id);
 
-ALTER TABLE REJUNTE_SA.Relleno
-ADD FOREIGN KEY(id_material) REFERENCES REJUNTE_SA.Material(id);
-ALTER TABLE REJUNTE_SA.Relleno
-ADD FOREIGN KEY(id_densidad) REFERENCES REJUNTE_SA.Densidad(id);
-
 ALTER TABLE REJUNTE_SA.Material
-ADD FOREIGN KEY(id_material_tipo) REFERENCES REJUNTE_SA.MaterialTipo(id);
+ADD FOREIGN KEY(id_material_tipo) REFERENCES REJUNTE_SA.Material_Tipo(id);
+
+ALTER TABLE REJUNTE_SA.Material_X_Tela
+ADD FOREIGN KEY(id_material) REFERENCES REJUNTE_SA.Material(id);
+ALTER TABLE REJUNTE_SA.Material_X_Tela
+ADD FOREIGN KEY(id_tela) REFERENCES REJUNTE_SA.Tela(id);
+
+ALTER TABLE REJUNTE_SA.Material_X_Madera
+ADD FOREIGN KEY(id_material) REFERENCES REJUNTE_SA.Material(id);
+ALTER TABLE REJUNTE_SA.Material_X_Madera
+ADD FOREIGN KEY(id_madera) REFERENCES REJUNTE_SA.Madera(id);
+
+ALTER TABLE REJUNTE_SA.Material_X_Relleno
+ADD FOREIGN KEY(id_material) REFERENCES REJUNTE_SA.Material(id);
+ALTER TABLE REJUNTE_SA.Material_X_Relleno
+ADD FOREIGN KEY(id_relleno) REFERENCES REJUNTE_SA.Relleno(id);
 
 --Vista para migrar provincias y localidades
 GO
@@ -475,7 +493,7 @@ GO
 CREATE PROCEDURE REJUNTE_SA.migrar_datos_contacto
 AS
 BEGIN
-    INSERT INTO REJUNTE_SA.DatosContacto (telefono, mail)
+    INSERT INTO REJUNTE_SA.Datos_Contacto (telefono, mail)
     SELECT * FROM REJUNTE_SA.TelefonoMail
 END
 
@@ -495,7 +513,7 @@ BEGIN
         d.id,
         l.id AS num_localidad
     FROM [GD1C2025].[gd_esquema].[Maestra] m
-    JOIN REJUNTE_SA.DatosContacto d
+    JOIN REJUNTE_SA.Datos_Contacto d
         ON d.telefono = m.Cliente_Telefono AND d.mail = m.Cliente_Mail
     JOIN REJUNTE_SA.Provincia p
         ON p.nombre = m.Cliente_Provincia
@@ -518,7 +536,7 @@ BEGIN
         d.id,
         l.id
     FROM [GD1C2025].[gd_esquema].[Maestra] m
-    JOIN REJUNTE_SA.DatosContacto d
+    JOIN REJUNTE_SA.Datos_Contacto d
         ON d.telefono = m.Proveedor_Telefono AND d.mail = m.Proveedor_Mail
     JOIN REJUNTE_SA.Localidad l
         ON l.nombre = m.Proveedor_Localidad
@@ -541,7 +559,7 @@ BEGIN
     FROM gd_esquema.Maestra M4
     JOIN REJUNTE_SA.Provincia P ON p.nombre = M4.Sucursal_Provincia
     JOIN REJUNTE_SA.Localidad L2 ON l2.nombre = M4.Sucursal_Localidad AND L2.id_provincia = P.id
-    JOIN REJUNTE_SA.DatosContacto DC ON DC.mail = M4.Sucursal_mail AND DC.telefono = M4.Sucursal_telefono
+    JOIN REJUNTE_SA.Datos_Contacto DC ON DC.mail = M4.Sucursal_mail AND DC.telefono = M4.Sucursal_telefono
 END
 
 --migrar Pedido
@@ -644,20 +662,10 @@ BEGIN
 END
 
 GO
-CREATE PROCEDURE REJUNTE_SA.migrar_densidad
-AS
-BEGIN
-    INSERT INTO REJUNTE_SA.Densidad (densidad)
-        SELECT DISTINCT Relleno_Densidad
-        FROM gd_esquema.Maestra M2
-        WHERE Relleno_Densidad IS NOT NULL
-END
-
-GO
 CREATE PROCEDURE REJUNTE_SA.migrar_material_tipo
 AS
 BEGIN
-    INSERT INTO REJUNTE_SA.MaterialTipo (descripcion)
+    INSERT INTO REJUNTE_SA.Material_Tipo (descripcion)
         SELECT DISTINCT Material_Tipo
         FROM gd_esquema.Maestra M2
         WHERE Material_Tipo IS NOT NULL
@@ -674,7 +682,7 @@ BEGIN
             M.Material_Descripcion,
             M.Material_Precio
         FROM [GD1C2025].[gd_esquema].[Maestra] M
-        JOIN REJUNTE_SA.MaterialTipo MT ON MT.descripcion = M.Material_Tipo
+        JOIN REJUNTE_SA.Material_Tipo MT ON MT.descripcion = M.Material_Tipo
         WHERE
             Material_Nombre IS NOT NULL AND
             Material_Descripcion IS NOT NULL AND
@@ -686,21 +694,15 @@ GO
 CREATE PROCEDURE REJUNTE_SA.migrar_telas
 AS
 BEGIN
-    INSERT INTO REJUNTE_SA.Tela (id_material, id_color, id_textura)
-        SELECT DISTINCT
-            M.id,
-            C.id,
-            T.id
-        FROM [GD1C2025].[gd_esquema].[Maestra] M2
-        JOIN REJUNTE_SA.Textura T ON T.descripcion = M2.Tela_Textura
-        JOIN REJUNTE_SA.Color C ON C.descripcion = M2.Tela_Color
-        JOIN REJUNTE_SA.Material M ON M.nombre = M2.Material_Nombre AND M.descripcion = M2.Material_Descripcion
-        WHERE
-            Material_Tipo = 'Tela' AND
-            Material_Nombre IS NOT NULL AND
-            Material_Descripcion IS NOT NULL
-        GROUP BY C.id, Tela_Color, T.id, Tela_Textura, M.id, Material_Nombre, Material_Descripcion
-
+    INSERT INTO REJUNTE_SA.Tela (id_color, id_textura)
+    SELECT DISTINCT
+        C.id,
+        T.id
+    FROM [GD1C2025].[gd_esquema].[Maestra] M
+    JOIN REJUNTE_SA.Textura T ON T.descripcion = M.Tela_Textura
+    JOIN REJUNTE_SA.Color C ON C.descripcion = M.Tela_Color
+    WHERE
+        M.Material_Tipo = 'Tela'
 END
 
 
@@ -708,19 +710,15 @@ GO
 CREATE PROCEDURE REJUNTE_SA.migrar_maderas
 AS
 BEGIN
-    INSERT INTO REJUNTE_SA.Madera (id_material, id_color, id_dureza)
-        SELECT DISTINCT
-            M.id,
-            C.id,
-            D.id
-        FROM [GD1C2025].[gd_esquema].[Maestra] M2
-        JOIN REJUNTE_SA.Dureza D ON D.descripcion = M2.Madera_Dureza
-        JOIN REJUNTE_SA.Color C ON C.descripcion = M2.Madera_Color
-        JOIN REJUNTE_SA.Material M ON M.nombre = M2.Material_Nombre AND M.descripcion = M2.Material_Descripcion
-        WHERE
-            Material_Tipo = 'Madera' AND
-            Material_Nombre IS NOT NULL AND
-            Material_Descripcion IS NOT NULL
+    INSERT INTO REJUNTE_SA.Madera (id_color, id_dureza)
+    SELECT DISTINCT
+        C.id,
+        D.id
+    FROM [GD1C2025].[gd_esquema].[Maestra] M
+    JOIN REJUNTE_SA.Dureza D ON D.descripcion = M.Madera_Dureza
+    JOIN REJUNTE_SA.Color C ON C.descripcion = M.Madera_Color
+    WHERE
+        M.Material_Tipo = 'Madera'
 
 END
 
@@ -728,17 +726,12 @@ GO
 CREATE PROCEDURE REJUNTE_SA.migrar_rellenos
 AS
 BEGIN
-    INSERT INTO REJUNTE_SA.Relleno (id_material, id_densidad)
-        SELECT DISTINCT
-            M.id,
-            D.id
-        FROM [GD1C2025].[gd_esquema].[Maestra] M2
-        JOIN REJUNTE_SA.Densidad D ON D.densidad = M2.Relleno_Densidad
-        JOIN REJUNTE_SA.Material M ON M.nombre = M2.Material_Nombre AND M.descripcion = M2.Material_Descripcion
-        WHERE
-            Material_Tipo = 'Relleno' AND
-            Material_Nombre IS NOT NULL AND
-            Material_Descripcion IS NOT NULL
+    INSERT INTO REJUNTE_SA.Relleno (densidad)
+    SELECT DISTINCT
+        M.Relleno_Densidad
+    FROM [GD1C2025].[gd_esquema].[Maestra] M
+    WHERE
+        Material_Tipo = 'Relleno'
 
 END
 
@@ -807,47 +800,30 @@ GO
 CREATE PROCEDURE REJUNTE_SA.migrar_sillon
 AS
 BEGIN
-    WITH MaderaFiltrada AS (
-        SELECT id, id_color, id_dureza,
-               ROW_NUMBER() OVER (PARTITION BY id_color, id_dureza ORDER BY id) AS rn
-        FROM REJUNTE_SA.Madera
-    ),
-    TelaFiltrada AS (
-        SELECT id, id_color,
-               ROW_NUMBER() OVER (PARTITION BY id_color ORDER BY id) AS rn
-        FROM REJUNTE_SA.Tela
-    ),
-    RellenoFiltrado AS (
-        SELECT id, id_densidad,
-               ROW_NUMBER() OVER (PARTITION BY id_densidad ORDER BY id) AS rn
-        FROM REJUNTE_SA.Relleno
-    )
     INSERT INTO REJUNTE_SA.Sillon (id, id_modelo, id_medida, id_madera, id_tela, id_relleno)
-        SELECT
-            DISTINCT M.Sillon_Codigo,
-            M2.id as id_modelo,
-            M3.id as id_medida,
-            MF.id as id_madera,
-            TF.id as id_textura,
-            RF.id as id_relleno
-        FROM [GD1C2025].[gd_esquema].[Maestra] M
-        JOIN REJUNTE_SA.VistaSillon VS on M.Sillon_Codigo = VS.Sillon_Codigo
-        JOIN REJUNTE_SA.Modelo M2 ON M2.id = VS.Sillon_Modelo_Codigo
-        JOIN REJUNTE_SA.Medida M3 ON M3.alto = VS.Sillon_Medida_Alto AND M3.ancho = VS.Sillon_Medida_Ancho AND M3.profundidad = VS.Sillon_Medida_Profundidad
-        JOIN REJUNTE_SA.Dureza D ON D.descripcion = VS.madera_dureza
-        JOIN REJUNTE_SA.Color CT ON CT.descripcion = VS.tela_color
-        JOIN REJUNTE_SA.Color CM ON CM.descripcion = VS.madera_color
-        JOIN REJUNTE_SA.Densidad D2 ON D2.densidad = VS.relleno_densidad
-        JOIN MaderaFiltrada MF ON MF.id_dureza = D.id AND MF.id_color = CM.id AND MF.rn = 1
-        JOIN TelaFiltrada TF ON TF.id_color = CT.id AND TF.rn = 1
-        JOIN RellenoFiltrado RF ON RF.id_densidad = D2.id AND RF.rn = 1
-        WHERE
-            M.Sillon_Codigo IS NOT NULL AND
-            M.Sillon_Modelo_Codigo IS NOT NULL AND
-            M.Sillon_Medida_Alto IS NOT NULL AND
-            M.Sillon_Medida_Ancho IS NOT NULL AND
-            M.Sillon_Medida_Profundidad IS NOT NULL
-        ORDER BY 1, 2
+    SELECT
+        DISTINCT M.Sillon_Codigo,
+        M2.id as id_modelo,
+        M3.id as id_medida,
+        M4.id as id_madera,
+        T.id as id_textura,
+        R2.id as id_relleno
+    FROM [GD1C2025].[gd_esquema].[Maestra] M
+    JOIN REJUNTE_SA.VistaSillon VS on M.Sillon_Codigo = VS.Sillon_Codigo
+    JOIN REJUNTE_SA.Modelo M2 ON M2.id = VS.Sillon_Modelo_Codigo
+    JOIN REJUNTE_SA.Medida M3 ON M3.alto = VS.Sillon_Medida_Alto AND M3.ancho = VS.Sillon_Medida_Ancho AND M3.profundidad = VS.Sillon_Medida_Profundidad
+    JOIN REJUNTE_SA.Dureza D ON D.descripcion = VS.madera_dureza
+    JOIN REJUNTE_SA.Color CT ON CT.descripcion = VS.tela_color
+    JOIN REJUNTE_SA.Color CM ON CM.descripcion = VS.madera_color
+    JOIN REJUNTE_SA.Relleno R2 ON R2.densidad = VS.relleno_densidad
+    JOIN REJUNTE_SA.Madera M4 ON M4.id_dureza = D.id AND M4.id_color = CM.id
+    JOIN REJUNTE_SA.Tela T ON T.id_color = CT.id
+    WHERE
+        M.Sillon_Codigo IS NOT NULL AND
+        M.Sillon_Modelo_Codigo IS NOT NULL AND
+        M.Sillon_Medida_Alto IS NOT NULL AND
+        M.Sillon_Medida_Ancho IS NOT NULL AND
+        M.Sillon_Medida_Profundidad IS NOT NULL
 END
 
 -- INICIO EXECS PROCEDURES
@@ -877,9 +853,6 @@ exec REJUNTE_SA.migrar_colores
 
 go
 exec REJUNTE_SA.migrar_dureza
-
-go
-exec REJUNTE_SA.migrar_densidad
 
 go
 exec REJUNTE_SA.migrar_textura
