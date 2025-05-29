@@ -14,13 +14,13 @@ entity "Pedido" {
   id_estado_pedido : nvarchar(255)
 }
 
-entity "EstadoPedido" {
+entity "Estado_Pedido" {
   + id : decimal(18) [PK]
   --
   descripcion : nvarchar(255)
 }
 
-entity "DetallePedido" {
+entity "Detalle_Pedido" {
   + id : bigint(8)
   --
   id_pedido : decimal(18) [FK]
@@ -30,7 +30,7 @@ entity "DetallePedido" {
   subtotal : decimal(9)
 }
 
-entity "CancelacionPedido" {
+entity "Cancelacion_Pedido" {
   + id : bigint(8) [PK]
   --
   id_pedido : decimal(18) [FK]
@@ -58,7 +58,7 @@ entity "Cliente" {
   fecha_nacimiento : datetime2(8)
 }
 
-entity "DatosContacto" {
+entity "Datos_Contacto" {
   + id: bigint(8) [PK]
   --
   telefono : bigint(8)
@@ -107,7 +107,7 @@ entity "Compra" {
   total : decimal(9)
 }
 
-entity "DetalleFactura" {
+entity "Detalle_Factura" {
   + id : bigint(8) [PK]
   --
   id_factura : bigint(8) [FK]
@@ -117,7 +117,7 @@ entity "DetalleFactura" {
   sub_total : decimal(9)
 }
 
-entity "DetalleCompra" {
+entity "Detalle_Compra" {
   + id : bigint(8) [PK]
   --
   id_compra: decimal(9) [FK]
@@ -151,14 +151,7 @@ entity "Sillon" {
 entity "Relleno" {
   + id : bigint(8) [PK]
   --
-  id_material : bigint(8) [PK]
-  id_densidad : bigint(8) [FK]
-}
-
-entity "Densidad" {
-  + id : bigint(8) [PK]
-  --
-  descripcion : decimal(38,2)
+  densidad : decimal(38,2)
 }
 
 entity "Modelo" {
@@ -182,7 +175,6 @@ entity "Medida" {
 entity "Tela" {
   + id : bigint(8) [PK]
   --
-  id_material : bigint(8) [PK]
   id_color : bigint(8) [FK]
   id_textura : bigint(8) [FK]
 }
@@ -196,7 +188,6 @@ entity "Textura" {
 entity "Madera" {
   + id : bigint(8) [PK]
   --
-  id_material : bigint(8) [PK]
   id_color : bigint(8) [FK]
   id_dureza : bigint(8) [FK]
 }
@@ -207,7 +198,7 @@ entity "Dureza" {
   descripcion : nvarchar(255)
 }
 
-entity "MaterialTipo" {
+entity "Material_Tipo" {
   + id : bigint(8) [PK]
   --
   descripcion : nvarchar(255)
@@ -222,6 +213,24 @@ entity "Material" {
   precio : decimal(17)
 }
 
+entity "Material_X_Tela" {
+  + id_material : bigint(8) [PK] [FK]
+  + id_tela : bigint(8) [PK] [FK]
+  --
+}
+
+entity "Material_X_Madera" {
+  + id_material : bigint(8) [PK] [FK]
+  + id_madera : bigint(8) [PK] [FK]
+  --
+}
+
+entity "Material_X_Relleno" {
+  + id_material : bigint(8) [PK] [FK]
+  + id_relleno : bigint(8) [PK] [FK]
+  --
+}
+
 entity "Color" {
   + id : bigint(8) [PK]
   --
@@ -234,19 +243,19 @@ Cliente ||--o{ Pedido
 Sucursal ||--o{ Pedido 
 Sucursal ||--o{ Compra 
 Proveedor ||--o{ Compra 
-Pedido ||--o| CancelacionPedido
-Proveedor }o--|| DatosContacto
+Pedido ||--o| Cancelacion_Pedido
+Proveedor }o--|| Datos_Contacto
 
 Cliente }o--|| Localidad
 Sucursal }o--|| Localidad
 Proveedor }o--|| Localidad
 Localidad }o--|| Provincia
 
-DetallePedido }o--|| Sillon
-Pedido ||--o{ DetallePedido 
-Factura ||--o{ DetalleFactura 
+Detalle_Pedido }o--|| Sillon
+Pedido ||--o{ Detalle_Pedido 
+Factura ||--o{ Detalle_Factura 
 Factura ||--|| Envio 
-Compra ||--o{ DetalleCompra 
+Compra ||--o{ Detalle_Compra 
 
 Madera }o--|| Color
 Tela }o--|| Color
@@ -258,24 +267,27 @@ Sillon }o--|| Madera
 Sillon }o--|| Relleno
 
 ' Relaciones de materiales
-Material }o--|| MaterialTipo
+Material }o--|| Material_Tipo
 
-Material ||--o| Relleno
-Material ||--o| Madera
-Material ||--o| Tela
+Material_X_Madera }o--|| Madera
+Material_X_Tela }o--|| Tela
+Material_X_Relleno }o--|| Relleno
+
+Material ||--o{ Material_X_Relleno
+Material ||--o{ Material_X_Madera
+Material ||--o{ Material_X_Tela
 
 Madera }o--|| Dureza
-Relleno }o--|| Densidad
 Tela }o--|| Textura
 
 Factura }o--|| Cliente
 Factura }o--|| Sucursal
 
 ' Relaciones de datos personales
-DatosContacto ||--o{ Sucursal 
-DatosContacto ||--o{ Cliente 
-DetalleCompra }o--|| Material
-EstadoPedido ||--o{ Pedido
-DetalleFactura |o--|| DetallePedido
+Datos_Contacto ||--o{ Sucursal 
+Datos_Contacto ||--o{ Cliente 
+Detalle_Compra }o--|| Material
+Estado_Pedido ||--o{ Pedido
+Detalle_Factura |o--|| Detalle_Pedido
 
 @enduml
