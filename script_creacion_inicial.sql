@@ -229,7 +229,8 @@ CREATE TABLE REJUNTE_SA.Envio (
     fecha_programada DATETIME2(6),
     fecha_entrega DATETIME2(6),
     importe_traslado DECIMAL(18, 2),
-    importe_subida DECIMAL(18, 2)
+    importe_subida DECIMAL(18, 2),
+    importe_total DECIMAL(18, 2)
 )
 GO
 
@@ -584,14 +585,16 @@ BEGIN
     WHERE m.Compra_Numero IS NOT NULL AND m.Compra_Fecha IS NOT NULL AND m.Compra_Total IS NOT NULL
 END
 
-CREATE PROCEDURE REJUNTE_SA.migrar_cancelacionPedido 
+CREATE PROCEDURE REJUNTE_SA.migrar_cancelacionPedido AS
 BEGIN 
 INSERT INTO REJUNTE_SA.CancelacionPedido (id_pedido, fecha, motivo)
 SELECT DISTINCT p.id , m.Pedido_Cancelacion_Fecha, m.Pedido_Cancelacion_Motivo
 FROM [GD1C2025].[gd_esquema].[Maestra] m
 JOIN REJUNTE_SA.Pedido p
 ON p.fecha = m.Pedido_Fecha and p.total = m.Pedido_Total
-WHERE m.Pedido_Numero IS NOT NULL AND m.Pedido_Cancelacion_Fecha IS NOT NULL AND m.Pedido_Cancelacion_Motivo IS NOT NULL
+WHERE m.Pedido_Numero IS NOT NULL 
+AND m.Pedido_Cancelacion_Fecha IS NOT NULL
+AND m.Pedido_Cancelacion_Motivo IS NOT NULL
 END 
 GO
 
@@ -609,9 +612,9 @@ BEGIN
             m.Factura_Total
         FROM [GD1C2025].[gd_esquema].[Maestra] m
         JOIN REJUNTE_SA.Cliente c
-            ON c.nombre = m.Cliente_Nombre AND c.apellido = m.Cliente_Apellido AND c.dni = m.Cliente_Dni
+            ON c.nombre = m.Cliente_Nombre AND c.apellido = m.Cliente_Apellido AND c.dni = m.Cliente_Dni AND c.direccion = m.Cliente_Direccion
         JOIN REJUNTE_SA.Sucursal s
-            ON s.numero_sucursal = m.Sucursal_NroSucursal
+        ON s.id = m.Sucursal_NroSucursal AND s.direccion = m.Sucursal_Direccion
 	WHERE m.Factura_Numero IS NOT NULL AND
         m.Factura_Fecha IS NOT NULL AND
         m.Factura_Total IS NOT NULL
@@ -622,18 +625,20 @@ GO
 CREATE PROCEDURE REJUNTE_SA.migrar_envios
 AS
 BEGIN 
-INSERT INTO REJUNTE_SA.Envio (id, id_factura, fecha_programada, fecha_entrega, importe_traslado, importe_subida)
+INSERT INTO REJUNTE_SA.Envio (id, id_factura, fecha_programada, fecha_entrega, importe_traslado, importe_subida, importe_total)
 SELECT DISTINCT m.Envio_numero,
 f.id,
 m.Envio_Fecha_Programada,
 m.Envio_Fecha,
 m.Envio_ImporteTraslado,
-m.Envio_importeSubida
+m.Envio_importeSubida,
 m.Envio_Total
 FROM [GD1C2025].[gd_esquema].[Maestra] m
 JOIN REJUNTE_SA.Factura f
-ON f.id = m.Factura_numero AND f.
-WHERE m.Envio_numero AND m.Envio
+ON f.id = m.Factura_Numero AND f.fecha = m.Factura_Fecha AND f.total = m.Factura_Total
+WHERE m.Envio_numero IS NOT NULL
+AND m.Envio_Fecha IS NOT NULL
+AND m.Envio_Total IS NOT NULL
 END 
 
 
