@@ -532,17 +532,15 @@ CREATE PROCEDURE REJUNTE_SA.migrar_sucursales
 AS
 BEGIN
     INSERT INTO REJUNTE_SA.Sucursal (numero_sucursal, id_datos_contacto, direccion, id_localidad)
-        SELECT
-            DISTINCT m.Sucursal_NroSucursal as id,
-            d.id as id_datos_contactos,
-            m.Sucursal_Direccion as direccion,
-            l.id as id_localidad
-        FROM [GD1C2025].[gd_esquema].[Maestra] m
-        JOIN REJUNTE_SA.DatosContacto d
-            ON d.telefono = m.Sucursal_Telefono AND d.mail = m.Sucursal_Mail
-        JOIN REJUNTE_SA.Localidad l
-            ON l.nombre = m.Sucursal_Localidad
-        WHERE m.Sucursal_NroSucursal IS NOT NULL AND m.Sucursal_Direccion IS NOT NULL
+        select
+            distinct Sucursal_NroSucursal,
+            dc.id,
+            Sucursal_Direccion,
+            l2.id
+        from gd_esquema.Maestra M4
+        join REJUNTE_SA.Provincia P on p.nombre = M4.Sucursal_Provincia
+        join REJUNTE_SA.Localidad L2 on l2.nombre = M4.Sucursal_Localidad and l2.id_provincia = p.id
+        join REJUNTE_SA.DatosContacto DC on DC.mail = M4.Sucursal_mail and dc.telefono = M4.Sucursal_telefono
 END
 
 --migrar Pedido
@@ -847,6 +845,7 @@ BEGIN
         ORDER BY 1, 2
 END
 
+-- INICIO EXECS PROCEDURES
 go
 exec REJUNTE_SA.migrar_provincias
 
