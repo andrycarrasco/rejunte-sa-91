@@ -583,6 +583,16 @@ BEGIN
         WHERE m.Compra_Numero IS NOT NULL AND m.Compra_Fecha IS NOT NULL AND m.Compra_Total IS NOT NULL
 END
 
+CREATE PROCEDURE REJUNTE_SA.migrar_cancelacionPedido 
+BEGIN 
+INSERT INTO REJUNTE_SA.CancelacionPedido (id_pedido, fecha, motivo)
+SELECT DISTINCT p.id , m.Pedido_Cancelacion_Fecha, m.Pedido_Cancelacion_Motivo
+FROM [GD1C2025].[gd_esquema].[Maestra] m
+JOIN REJUNTE_SA.Pedido p
+ON p.fecha = m.Pedido_Fecha and p.total = m.Pedido_Total
+WHERE m.Pedido_Numero IS NOT NULL AND m.Pedido_Cancelacion_Fecha IS NOT NULL AND m.Pedido_Cancelacion_Motivo IS NOT NULL
+END 
+GO
 
 --migrar factura 
 GO
@@ -598,10 +608,30 @@ BEGIN
             m.Factura_Total
         FROM [GD1C2025].[gd_esquema].[Maestra] m
         JOIN REJUNTE_SA.Cliente c
-            ON c.nombre = m.Cliente_Nombre AND c.apellido = m.Cliente_Apellido
+            ON c.nombre = m.Cliente_Nombre AND c.apellido = m.Cliente_Apellido AND c.dni = m.Cliente_Dni
         JOIN REJUNTE_SA.Sucursal s
-            ON s.id = m.Sucursal_NroSucursal
+            ON s.numero_sucursal = m.Sucursal_NroSucursal
+	WHERE m.Factura_Numero IS NOT NULL
 END
+
+--migrar envios
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_envios
+AS
+BEGIN 
+INSERT INTO REJUNTE_SA.Envio (id, id_factura, fecha_programada, fecha_entrega, importe_traslado, importe_subida)
+SELECT DISTINCT m.Envio_numero,
+f.id,
+m.Envio_Fecha_Programada,
+m.Envio_Fecha,
+m.Envio_ImporteTraslado,
+m.Envio_importeSubida
+m.Envio_Total
+FROM [GD1C2025].[gd_esquema].[Maestra] m
+JOIN REJUNTE_SA.Factura f
+ON f.id = m.Factura_numero AND f.
+WHERE m.Envio_numero AND m.Envio
+END 
 
 
 GO
