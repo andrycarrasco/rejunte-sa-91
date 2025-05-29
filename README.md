@@ -5,50 +5,21 @@ Para correr el archivo .puml, deben tener instalado:
 - Graphviz[http://www.graphviz.org/download/]
 
 ## Creacion de Tablas
-- [ ] Pedido
-- [ ] EstadoPedido
-- [ ] DetallePedido
-- [ ] CancelacionPedido
-- [ ] Sucursal
-- [ ] Cliente
-- [ ] DatosContacto
-- [ ] Localidad
-- [ ] Provincia
-- [ ] Proveedor
-- [ ] Factura
-- [ ] Compra
-- [ ] DetalleFactura
-- [ ] DetalleCompra
-- [ ] Envio
-- [ ] Sillon
-- [ ] Relleno
-- [ ] Densidad
-- [ ] Modelo
-- [ ] Medida
-- [ ] Tela
-- [ ] Textura
-- [ ] Madera
-- [ ] Dureza
-- [ ] MaterialTipo
-- [ ] Material
-- [ ] Color
-
-## Creacion de Procedures
 - [x] Pedido
-- [ ] EstadoPedido
-- [ ] DetallePedido
-- [ ] CancelacionPedido
+- [x] Estado_Pedido
+- [x] Detalle_Pedido
+- [x] Cancelacion_Pedido
 - [x] Sucursal
 - [x] Cliente
-- [x] DatosContacto
+- [x] Datos_Contacto
 - [x] Localidad
 - [x] Provincia
 - [x] Proveedor
 - [x] Factura
 - [x] Compra
-- [ ] DetalleFactura
-- [ ] DetalleCompra
-- [ ] Envio
+- [x] Detalle_Factura
+- [x] Detalle_Compra
+- [x] Envio
 - [x] Sillon
 - [x] Relleno
 - [x] Densidad
@@ -58,6 +29,41 @@ Para correr el archivo .puml, deben tener instalado:
 - [x] Textura
 - [x] Madera
 - [x] Dureza
-- [x] MaterialTipo
+- [x] Material_Tipo
 - [x] Material
+- [x] Color
+- [x] Material_X_Tela
+- [x] Material_X_Madera
+- [x] Material_X_Relleno
+
+## Creacion de Procedures
+- [x] Pedido
+- [x] Estado_Pedido
+- [x] Detalle_Pedido
+- [x] Cancelacion_Pedido
+- [x] Sucursal
+- [x] Cliente
+- [x] Datos_Contacto
+- [x] Localidad
+- [x] Provincia
+- [x] Proveedor
+- [x] Factura
+- [x] Compra
+- [ ] Detalle_Factura
+- [ ] Detalle_Compra
+- [x] Envio
+- [x] Sillon
+- [x] Relleno
+- [x] Densidad
+- [x] Modelo
+- [x] Medida
+- [x] Tela
+- [x] Textura
+- [x] Madera
+- [x] Dureza
+- [x] Material_Tipo
+- [x] Material
+- [x] Material_X_Tela
+- [x] Material_X_Madera
+- [x] Material_X_Relleno
 - [x] Color
