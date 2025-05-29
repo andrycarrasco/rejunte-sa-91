@@ -310,7 +310,7 @@ GO
 
 -- ok
 CREATE TABLE REJUNTE_SA.Sillon (
-    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    id BIGINT PRIMARY KEY,
     id_modelo BIGINT,
     id_medida BIGINT,
     id_madera BIGINT,
@@ -434,7 +434,7 @@ UNION
 SELECT Proveedor_Provincia, Proveedor_Localidad FROM [GD1C2025].[gd_esquema].[Maestra] WHERE Proveedor_Provincia IS NOT NULL AND Proveedor_Localidad IS NOT NULL
 UNION
 SELECT Sucursal_Provincia, Sucursal_Localidad FROM [GD1C2025].[gd_esquema].[Maestra] WHERE Sucursal_Provincia IS NOT NULL AND Sucursal_Localidad IS NOT NULL
-GO
+
 
 
 --MIGRACION DE DATOS PROCEDURES
@@ -532,17 +532,15 @@ CREATE PROCEDURE REJUNTE_SA.migrar_sucursales
 AS
 BEGIN
     INSERT INTO REJUNTE_SA.Sucursal (numero_sucursal, id_datos_contacto, direccion, id_localidad)
-        SELECT
-            DISTINCT m.Sucursal_NroSucursal as id,
-            d.id as id_datos_contactos,
-            m.Sucursal_Direccion as direccion,
-            l.id as id_localidad
-        FROM [GD1C2025].[gd_esquema].[Maestra] m
-        JOIN REJUNTE_SA.DatosContacto d
-            ON d.telefono = m.Sucursal_Telefono AND d.mail = m.Sucursal_Mail
-        JOIN REJUNTE_SA.Localidad l
-            ON l.nombre = m.Sucursal_Localidad
-        WHERE m.Sucursal_NroSucursal IS NOT NULL AND m.Sucursal_Direccion IS NOT NULL
+        select
+            distinct Sucursal_NroSucursal,
+            dc.id,
+            Sucursal_Direccion,
+            l2.id
+        from gd_esquema.Maestra M4
+        join REJUNTE_SA.Provincia P on p.nombre = M4.Sucursal_Provincia
+        join REJUNTE_SA.Localidad L2 on l2.nombre = M4.Sucursal_Localidad and l2.id_provincia = p.id
+        join REJUNTE_SA.DatosContacto DC on DC.mail = M4.Sucursal_mail and dc.telefono = M4.Sucursal_telefono
 END
 
 --migrar Pedido
@@ -774,61 +772,80 @@ BEGIN
 END
 
 GO
+CREATE VIEW REJUNTE_SA.VistaSillon AS
+SELECT
+    DISTINCT M6.Sillon_Codigo,
+    M6.Sillon_Modelo_Codigo,
+    M6.Sillon_Medida_Alto,
+    M6.Sillon_Medida_Ancho,
+    M6.Sillon_Medida_Profundidad,
+    MAX(NULLIF(M6.Tela_Textura, null)) as tela_textura,
+    MAX(NULLIF(M6.Tela_Color, null)) as tela_color,
+    MAX(NULLIF(M6.Madera_Color, null)) as madera_color,
+    MAX(NULLIF(M6.Madera_Dureza, null)) as madera_dureza,
+    MAX(NULLIF(M6.Relleno_Densidad, null)) as relleno_densidad
+FROM [GD1C2025].[gd_esquema].[Maestra] M6
+WHERE
+    M6.Sillon_Codigo IS NOT NULL AND
+    M6.Sillon_Modelo_Codigo IS NOT NULL AND
+    M6.Sillon_Medida_Alto IS NOT NULL AND
+    M6.Sillon_Medida_Ancho IS NOT NULL AND
+    M6.Sillon_Medida_Profundidad IS NOT NULL
+group by
+    M6.Sillon_Codigo,
+    M6.Sillon_Modelo_Codigo,
+    M6.Sillon_Medida_Alto,
+    M6.Sillon_Medida_Ancho,
+    M6.Sillon_Medida_Profundidad
+
+GO
 CREATE PROCEDURE REJUNTE_SA.migrar_sillon
 AS
 BEGIN
-    INSERT INTO REJUNTE_SA.Sillon (id_modelo, id_medida, id_madera, id_tela, id_relleno)
-        SELECT DISTINCT
-            M2.id,
-            M3.id,
-            M4.id,
-            T.id,
-            R.id
+    WITH MaderaFiltrada AS (
+        SELECT id, id_color, id_dureza,
+               ROW_NUMBER() OVER (PARTITION BY id_color, id_dureza ORDER BY id) AS rn
+        FROM REJUNTE_SA.Madera
+    ),
+    TelaFiltrada AS (
+        SELECT id, id_color,
+               ROW_NUMBER() OVER (PARTITION BY id_color ORDER BY id) AS rn
+        FROM REJUNTE_SA.Tela
+    ),
+    RellenoFiltrado AS (
+        SELECT id, id_densidad,
+               ROW_NUMBER() OVER (PARTITION BY id_densidad ORDER BY id) AS rn
+        FROM REJUNTE_SA.Relleno
+    )
+    INSERT INTO REJUNTE_SA.Sillon (id, id_modelo, id_medida, id_madera, id_tela, id_relleno)
+        SELECT
+            DISTINCT M.Sillon_Codigo,
+            M2.id as id_modelo,
+            M3.id as id_medida,
+            MF.id as id_madera,
+            TF.id as id_textura,
+            RF.id as id_relleno
         FROM [GD1C2025].[gd_esquema].[Maestra] M
-        JOIN REJUNTE_SA.Modelo M2 ON M2.modelo = M.Sillon_Modelo AND M2.descripcion = M.Sillon_Modelo_Descripcion
-        JOIN REJUNTE_SA.Medida M3 ON M3.alto = M.Sillon_Medida_Alto AND M3.ancho = M.Sillon_Medida_Ancho AND M3.profundidad = M.Sillon_Medida_Profundidad
-        JOIN REJUNTE_SA.Dureza D ON D.descripcion = M.Madera_Dureza
-        JOIN REJUNTE_SA.Color CT ON CT.descripcion = M.Tela_Color
-        JOIN REJUNTE_SA.Color CM ON CM.descripcion = M.Madera_Color
-        JOIN REJUNTE_SA.Densidad D2 ON D2.densidad = M.Relleno_Densidad
-        JOIN REJUNTE_SA.Madera M4 ON M4.id_dureza = D.id AND M4.id_color = CM.id
-        JOIN REJUNTE_SA.Tela T ON T.id_color = T.id_color AND CT.id = T.id_color
-        JOIN REJUNTE_SA.Relleno R ON R.id = D2.id
+        JOIN REJUNTE_SA.VistaSillon VS on M.Sillon_Codigo = VS.Sillon_Codigo
+        JOIN REJUNTE_SA.Modelo M2 ON M2.id = VS.Sillon_Modelo_Codigo
+        JOIN REJUNTE_SA.Medida M3 ON M3.alto = VS.Sillon_Medida_Alto AND M3.ancho = VS.Sillon_Medida_Ancho AND M3.profundidad = VS.Sillon_Medida_Profundidad
+        JOIN REJUNTE_SA.Dureza D ON D.descripcion = VS.madera_dureza
+        JOIN REJUNTE_SA.Color CT ON CT.descripcion = VS.tela_color
+        JOIN REJUNTE_SA.Color CM ON CM.descripcion = VS.madera_color
+        JOIN REJUNTE_SA.Densidad D2 ON D2.densidad = VS.relleno_densidad
+        JOIN MaderaFiltrada MF ON MF.id_dureza = D.id AND MF.id_color = CM.id AND MF.rn = 1
+        JOIN TelaFiltrada TF ON TF.id_color = CT.id AND TF.rn = 1
+        JOIN RellenoFiltrado RF ON RF.id_densidad = D2.id AND RF.rn = 1
         WHERE
+            M.Sillon_Codigo IS NOT NULL AND
+            M.Sillon_Modelo_Codigo IS NOT NULL AND
             M.Sillon_Medida_Alto IS NOT NULL AND
             M.Sillon_Medida_Ancho IS NOT NULL AND
             M.Sillon_Medida_Profundidad IS NOT NULL
+        ORDER BY 1, 2
 END
 
-
-SELECT DISTINCT
-    M2.id,
-    M3.id
---     M4.id,
---     T.id,
---     R.id
-FROM [GD1C2025].[gd_esquema].[Maestra] M
-JOIN REJUNTE_SA.Modelo M2 ON M2.modelo = M.Sillon_Modelo AND M2.descripcion = M.Sillon_Modelo_Descripcion
-JOIN REJUNTE_SA.Medida M3 ON M3.alto = M.Sillon_Medida_Alto AND M3.ancho = M.Sillon_Medida_Ancho AND M3.profundidad = M.Sillon_Medida_Profundidad
-JOIN REJUNTE_SA.Dureza D ON D.descripcion = M.Madera_Dureza
-JOIN REJUNTE_SA.Color CM ON CM.descripcion = M.Madera_Color OR CM.descripcion = M.Tela_Color
--- JOIN REJUNTE_SA.Color CT ON CT.descripcion = M.Tela_Color
-JOIN REJUNTE_SA.Textura T2 ON T2.descripcion = M.Tela_Textura
-JOIN REJUNTE_SA.Madera M4 ON M4.id_dureza = D.id AND M4.id_color = CM.id
-JOIN REJUNTE_SA.Tela T ON CM.id = T.id_color AND T.id_textura = T2.id
-JOIN REJUNTE_SA.Densidad D2 ON D2.densidad = M.Relleno_Densidad
-JOIN REJUNTE_SA.Relleno R ON R.id_densidad = D2.id
-
-select *
-from REJUNTE_SA.Relleno R2;
-
-
-select distinct Tela_Color
-from gd_esquema.Maestra M5;
-
-select *
-from REJUNTE_SA.Color C;
-
+-- INICIO EXECS PROCEDURES
 go
 exec REJUNTE_SA.migrar_provincias
 
@@ -882,3 +899,7 @@ exec REJUNTE_SA.migrar_modelos
 
 go
 exec REJUNTE_SA.migrar_medidas
+
+go
+exec REJUNTE_SA.migrar_sillon
+
