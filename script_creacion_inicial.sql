@@ -136,8 +136,7 @@ GO
 
 -- ok
 CREATE TABLE REJUNTE_SA.Sucursal (
-    id BIGINT IDENTITY(1,1) PRIMARY KEY,
-    numero_sucursal BIGINT,
+    id BIGINT PRIMARY KEY,
     id_datos_contacto BIGINT,
     id_localidad BIGINT,
     direccion NVARCHAR(255)
@@ -485,25 +484,25 @@ GO
 CREATE PROCEDURE REJUNTE_SA.migrar_clientes
 AS
 BEGIN
-INSERT INTO REJUNTE_SA.Cliente (dni, nombre, apellido, fecha_nacimiento, direccion, id_datos_contacto, id_localidad)
-SELECT
-	distinct
-    m.Cliente_Dni,
-    m.Cliente_Nombre,
-    m.Cliente_Apellido,
-    m.Cliente_FechaNacimiento,
-    m.Cliente_Direccion,
-    d.id,
-    l.id AS num_localidad
-FROM [GD1C2025].[gd_esquema].[Maestra] m
-JOIN REJUNTE_SA.DatosContacto d
-    ON d.telefono = m.Cliente_Telefono AND d.mail = m.Cliente_Mail
-JOIN REJUNTE_SA.Provincia p
-    ON p.nombre = m.Cliente_Provincia
-JOIN REJUNTE_SA.Localidad l
-    ON l.nombre = m.Cliente_Localidad AND l.id_provincia = p.id
-WHERE m.Cliente_Dni IS NOT NULL
-AND m.Cliente_Direccion IS NOT NULL
+    INSERT INTO REJUNTE_SA.Cliente (dni, nombre, apellido, fecha_nacimiento, direccion, id_datos_contacto, id_localidad)
+    SELECT
+        distinct
+        m.Cliente_Dni,
+        m.Cliente_Nombre,
+        m.Cliente_Apellido,
+        m.Cliente_FechaNacimiento,
+        m.Cliente_Direccion,
+        d.id,
+        l.id AS num_localidad
+    FROM [GD1C2025].[gd_esquema].[Maestra] m
+    JOIN REJUNTE_SA.DatosContacto d
+        ON d.telefono = m.Cliente_Telefono AND d.mail = m.Cliente_Mail
+    JOIN REJUNTE_SA.Provincia p
+        ON p.nombre = m.Cliente_Provincia
+    JOIN REJUNTE_SA.Localidad l
+        ON l.nombre = m.Cliente_Localidad AND l.id_provincia = p.id
+    WHERE m.Cliente_Dni IS NOT NULL
+    AND m.Cliente_Direccion IS NOT NULL
 END
 
 --migrar proveedores
@@ -523,6 +522,8 @@ BEGIN
         ON d.telefono = m.Proveedor_Telefono AND d.mail = m.Proveedor_Mail
     JOIN REJUNTE_SA.Localidad l
         ON l.nombre = m.Proveedor_Localidad
+    JOIN REJUNTE_SA.Provincia P
+        ON P.id = L.id_provincia AND M.Proveedor_Provincia = P.nombre
     WHERE m.Proveedor_RazonSocial IS NOT NULL AND m.Proveedor_Cuit IS NOT NULL
 END 
 
@@ -531,16 +532,16 @@ GO
 CREATE PROCEDURE REJUNTE_SA.migrar_sucursales
 AS
 BEGIN
-    INSERT INTO REJUNTE_SA.Sucursal (numero_sucursal, id_datos_contacto, direccion, id_localidad)
-        select
-            distinct Sucursal_NroSucursal,
-            dc.id,
-            Sucursal_Direccion,
-            l2.id
-        from gd_esquema.Maestra M4
-        join REJUNTE_SA.Provincia P on p.nombre = M4.Sucursal_Provincia
-        join REJUNTE_SA.Localidad L2 on l2.nombre = M4.Sucursal_Localidad and l2.id_provincia = p.id
-        join REJUNTE_SA.DatosContacto DC on DC.mail = M4.Sucursal_mail and dc.telefono = M4.Sucursal_telefono
+    INSERT INTO REJUNTE_SA.Sucursal (id, id_datos_contacto, direccion, id_localidad)
+    SELECT
+        DISTINCT Sucursal_NroSucursal,
+        dc.id,
+        Sucursal_Direccion,
+        l2.id
+    FROM gd_esquema.Maestra M4
+    JOIN REJUNTE_SA.Provincia P ON p.nombre = M4.Sucursal_Provincia
+    JOIN REJUNTE_SA.Localidad L2 ON l2.nombre = M4.Sucursal_Localidad AND L2.id_provincia = P.id
+    JOIN REJUNTE_SA.DatosContacto DC ON DC.mail = M4.Sucursal_mail AND DC.telefono = M4.Sucursal_telefono
 END
 
 --migrar Pedido
@@ -557,7 +558,7 @@ BEGIN
             m.Pedido_Estado
         FROM [GD1C2025].[gd_esquema].[Maestra] m
         JOIN REJUNTE_SA.Cliente c
-            ON c.nombre = m.Cliente_Nombre AND c.apellido = m.Cliente_Apellido
+            ON c.nombre = m.Cliente_Nombre AND c.apellido = m.Cliente_Apellido AND Cliente_Dni = m.Cliente_Dni
         JOIN REJUNTE_SA.Sucursal s
             ON s.id = m.Sucursal_NroSucursal
         WHERE m.Pedido_Numero IS NOT NULL AND m.Pedido_Fecha IS NOT NULL AND m.Pedido_Total IS NOT NULL
@@ -598,9 +599,13 @@ BEGIN
             m.Factura_Total
         FROM [GD1C2025].[gd_esquema].[Maestra] m
         JOIN REJUNTE_SA.Cliente c
-            ON c.nombre = m.Cliente_Nombre AND c.apellido = m.Cliente_Apellido
+            ON c.nombre = m.Cliente_Nombre AND c.apellido = m.Cliente_Apellido AND C.dni = M.Cliente_Dni
         JOIN REJUNTE_SA.Sucursal s
             ON s.id = m.Sucursal_NroSucursal
+        WHERE
+            m.Factura_Numero IS NOT NULL AND
+            m.Factura_Fecha IS NOT NULL AND
+            m.Factura_Total IS NOT NULL
 END
 
 
