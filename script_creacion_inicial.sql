@@ -550,18 +550,18 @@ CREATE PROCEDURE REJUNTE_SA.migrar_pedidos
 AS
 BEGIN
     INSERT INTO REJUNTE_SA.Pedido (id, id_sucursal, id_cliente, fecha, total, id_estado_pedido)
-        SELECT DISTINCT m.Pedido_Numero,
-            s.id,
-            c.id,
-            m.Pedido_Fecha,
-            m.Pedido_Total,
-            m.Pedido_Estado
-        FROM [GD1C2025].[gd_esquema].[Maestra] m
-        JOIN REJUNTE_SA.Cliente c
-            ON c.nombre = m.Cliente_Nombre AND c.apellido = m.Cliente_Apellido AND Cliente_Dni = m.Cliente_Dni
-        JOIN REJUNTE_SA.Sucursal s
-            ON s.id = m.Sucursal_NroSucursal
-        WHERE m.Pedido_Numero IS NOT NULL AND m.Pedido_Fecha IS NOT NULL AND m.Pedido_Total IS NOT NULL
+    SELECT DISTINCT m.Pedido_Numero,
+        s.id,
+        c.id,
+        m.Pedido_Fecha,
+        m.Pedido_Total,
+        m.Pedido_Estado
+    FROM [GD1C2025].[gd_esquema].[Maestra] m
+    JOIN REJUNTE_SA.Cliente c
+        ON c.nombre = m.Cliente_Nombre AND c.apellido = m.Cliente_Apellido AND Cliente_Dni = m.Cliente_Dni
+    JOIN REJUNTE_SA.Sucursal s
+        ON s.id = m.Sucursal_NroSucursal
+    WHERE m.Pedido_Numero IS NOT NULL AND m.Pedido_Fecha IS NOT NULL AND m.Pedido_Total IS NOT NULL
 END
 
 
@@ -571,17 +571,17 @@ CREATE PROCEDURE REJUNTE_SA.migrar_compra
 AS
 BEGIN
     INSERT INTO REJUNTE_SA.Compra (id, id_sucursal, id_proveedor, fecha, total)
-        SELECT DISTINCT m.Compra_Numero,
-            s.id,
-            p.id,
-            m.Compra_Fecha,
-            m.Compra_Total
-        FROM [GD1C2025].[gd_esquema].[Maestra] m
-        JOIN REJUNTE_SA.Sucursal s
-        ON s.id = m.Sucursal_NroSucursal
-        JOIN REJUNTE_SA.Proveedor p
-        ON p.razon_social = m.Proveedor_RazonSocial AND p.cuit = m.Proveedor_Cuit
-        WHERE m.Compra_Numero IS NOT NULL AND m.Compra_Fecha IS NOT NULL AND m.Compra_Total IS NOT NULL
+    SELECT DISTINCT m.Compra_Numero,
+        s.id,
+        p.id,
+        m.Compra_Fecha,
+        m.Compra_Total
+    FROM [GD1C2025].[gd_esquema].[Maestra] m
+    JOIN REJUNTE_SA.Sucursal s
+    ON s.id = m.Sucursal_NroSucursal
+    JOIN REJUNTE_SA.Proveedor p
+    ON p.razon_social = m.Proveedor_RazonSocial AND p.cuit = m.Proveedor_Cuit
+    WHERE m.Compra_Numero IS NOT NULL AND m.Compra_Fecha IS NOT NULL AND m.Compra_Total IS NOT NULL
 END
 
 
@@ -591,21 +591,21 @@ CREATE PROCEDURE REJUNTE_SA.migrar_facturas
 AS
 BEGIN 
     INSERT INTO REJUNTE_SA.Factura (id, id_sucursal, id_cliente, fecha, total)
-        SELECT
-            DISTINCT m.Factura_numero,
-            s.id,
-            c.id,
-            m.Factura_Fecha,
-            m.Factura_Total
-        FROM [GD1C2025].[gd_esquema].[Maestra] m
-        JOIN REJUNTE_SA.Cliente c
-            ON c.nombre = m.Cliente_Nombre AND c.apellido = m.Cliente_Apellido AND C.dni = M.Cliente_Dni
-        JOIN REJUNTE_SA.Sucursal s
-            ON s.id = m.Sucursal_NroSucursal
-        WHERE
-            m.Factura_Numero IS NOT NULL AND
-            m.Factura_Fecha IS NOT NULL AND
-            m.Factura_Total IS NOT NULL
+    SELECT
+        DISTINCT m.Factura_numero,
+        s.id,
+        c.id,
+        m.Factura_Fecha,
+        m.Factura_Total
+    FROM [GD1C2025].[gd_esquema].[Maestra] m
+    JOIN REJUNTE_SA.Cliente c
+        ON c.nombre = m.Cliente_Nombre AND c.apellido = m.Cliente_Apellido AND C.dni = M.Cliente_Dni
+    JOIN REJUNTE_SA.Sucursal s
+        ON s.id = m.Sucursal_NroSucursal
+    WHERE
+        m.Factura_Numero IS NOT NULL AND
+        m.Factura_Fecha IS NOT NULL AND
+        m.Factura_Total IS NOT NULL
 END
 
 
