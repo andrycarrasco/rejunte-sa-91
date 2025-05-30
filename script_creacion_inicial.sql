@@ -942,6 +942,28 @@ BEGIN
     JOIN REJUNTE_SA.Relleno R ON R.densidad = M.Relleno_Densidad
 END
 
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_detalles_compra
+AS
+BEGIN
+    INSERT INTO REJUNTE_SA.Detalle_Compra(id_compra, id_material, precio, cantidad, subtotal)
+    SELECT DISTINCT
+        M.Compra_Numero,
+        M2.id,
+        M.Detalle_Compra_Precio,
+        M.Detalle_Compra_Cantidad,
+        M.Detalle_Compra_SubTotal
+    FROM [GD1C2025].gd_esquema.Maestra M
+    JOIN REJUNTE_SA.Material M2
+        ON M2.nombre = M.Material_Nombre AND M2.descripcion = M.Material_Descripcion AND M2.precio = M2.precio
+    WHERE
+        M.Compra_Numero IS NOT NULL AND
+        M.Detalle_Compra_Precio IS NOT NULL AND
+        M.Detalle_Compra_Cantidad IS NOT NULL AND
+        M.Detalle_Compra_SubTotal IS NOT NULL
+    ORDER BY 1 DESC
+END
+
 
 -- INICIO EXECS PROCEDURES
 go
@@ -1022,5 +1044,6 @@ exec REJUNTE_SA.migrar_detalle_pedido
 go
 exec REJUNTE_SA.migrar_cancelacion_pedido
 
-go
-exec REJUNTE_sA.migrar_detalle_factura
+GO
+EXEC REJUNTE_SA.migrar_detalles_compra
+
