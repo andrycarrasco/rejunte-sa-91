@@ -1,5 +1,5 @@
 USE GD1C2025 
-IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'REJUNTE_SA')
+IF NOT EXISTS (SELECT * FROM [GD1C2025].sys.schemas WHERE name = 'REJUNTE_SA')
 BEGIN 
 	EXEC ('CREATE SCHEMA REJUNTE_SA AUTHORIZATION dbo')
 END
@@ -10,14 +10,14 @@ GO
 DECLARE @sql NVARCHAR(MAX) = N'';
 SELECT @sql += N'ALTER TABLE ' + QUOTENAME(OBJECT_SCHEMA_NAME(parent_object_id)) + '.' + QUOTENAME(OBJECT_NAME(parent_object_id)) +
     ' DROP CONSTRAINT ' + QUOTENAME(name) + ';'
-FROM sys.foreign_keys;
+FROM [GD1C2025].sys.foreign_keys;
 EXEC sp_executesql @sql;
 
 -- Borra todas las tablas en el esquema REJUNTESA
 GO
 DECLARE @dropTableSQL NVARCHAR(MAX) = N'';
 SELECT @dropTableSQL += 'DROP TABLE ' + QUOTENAME(OBJECT_SCHEMA_NAME(object_id)) + '.' + QUOTENAME(name) + '; '
-FROM sys.tables
+FROM [GD1C2025].sys.tables
 WHERE SCHEMA_NAME(schema_id) = 'REJUNTE_SA';
 EXEC sp_executesql @dropTableSQL;
 
@@ -25,7 +25,7 @@ EXEC sp_executesql @dropTableSQL;
 GO
 IF EXISTS(	select
 		*
-	from sys.sysobjects
+	from [GD1C2025].sys.sysobjects
 	where xtype = 'P' and name like 'migrar_%'
 	)
 	BEGIN
@@ -48,7 +48,7 @@ IF EXISTS(	select
 GO
 IF EXISTS (
     SELECT *
-    FROM sys.objects
+    FROM [GD1C2025].sys.objects
     WHERE type IN ('FN', 'IF', 'TF')
 )
 BEGIN
@@ -57,7 +57,7 @@ BEGIN
     DECLARE @sql NVARCHAR(MAX) = N'';
     SELECT @sql += N'
     DROP FUNCTION ' + QUOTENAME(SCHEMA_NAME(schema_id)) + '.' + QUOTENAME(name) + ';'
-    FROM sys.objects
+    FROM [GD1C2025].sys.objects
     WHERE type IN ('FN', 'IF', 'TF')
     --PRINT @sql;
     EXEC sp_executesql @sql;
@@ -69,7 +69,7 @@ END
 GO
 IF EXISTS (
     SELECT *
-    FROM sys.objects
+    FROM [GD1C2025].sys.objects
     WHERE type = 'V'
 )
 BEGIN
@@ -78,7 +78,7 @@ BEGIN
     DECLARE @sql NVARCHAR(MAX) = N'';
     SELECT @sql += N'
     DROP VIEW ' + QUOTENAME(SCHEMA_NAME(schema_id)) + '.' + QUOTENAME(name) + ';'
-    FROM sys.objects
+    FROM [GD1C2025].sys.objects
     WHERE type = 'V';
     --PRINT @sql;
     EXEC sp_executesql @sql;
@@ -86,31 +86,27 @@ END
 -- FIN: DROP Views
 
 --TABLES
-
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Datos_Contacto (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     telefono NVARCHAR(255),
     mail NVARCHAR(255)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Localidad (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     id_provincia BIGINT,
     nombre NVARCHAR(255)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Provincia (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     nombre NVARCHAR(255)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Proveedor (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     razon_social NVARCHAR(255),
@@ -119,9 +115,8 @@ CREATE TABLE REJUNTE_SA.Proveedor (
     id_datos_contacto BIGINT,
     id_localidad BIGINT
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Cliente (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     dni BIGINT UNIQUE,
@@ -132,18 +127,16 @@ CREATE TABLE REJUNTE_SA.Cliente (
     id_datos_contacto BIGINT,
     id_localidad BIGINT
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Sucursal (
     id BIGINT PRIMARY KEY,
     id_datos_contacto BIGINT,
     id_localidad BIGINT,
     direccion NVARCHAR(255)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Compra (
     id DECIMAL(18, 0) PRIMARY KEY,
     id_sucursal BIGINT,
@@ -151,9 +144,8 @@ CREATE TABLE REJUNTE_SA.Compra (
     fecha DATETIME2(6),
     total DECIMAL(18, 2)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Material (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     id_material_tipo BIGINT,
@@ -161,9 +153,8 @@ CREATE TABLE REJUNTE_SA.Material (
     descripcion NVARCHAR(255),
     precio DECIMAL(38, 2)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Detalle_Compra (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     id_compra DECIMAL(18, 0),
@@ -172,9 +163,8 @@ CREATE TABLE REJUNTE_SA.Detalle_Compra (
     cantidad DECIMAL(18, 0),
     subtotal DECIMAL(18, 2)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Pedido (
     id DECIMAL(18, 0) PRIMARY KEY,
     id_sucursal BIGINT,
@@ -183,25 +173,22 @@ CREATE TABLE REJUNTE_SA.Pedido (
     total DECIMAL(18, 2),
     id_estado_pedido BIGINT
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Estado_Pedido (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     descripcion NVARCHAR(255)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Cancelacion_Pedido (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     id_pedido DECIMAL(18, 0),
     fecha DATETIME2(6),
     motivo VARCHAR(255)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Detalle_Pedido (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     id_pedido DECIMAL(18, 0),
@@ -210,9 +197,8 @@ CREATE TABLE REJUNTE_SA.Detalle_Pedido (
     precio DECIMAL(18, 2),
     subtotal DECIMAL(18, 2),
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Factura (
     id BIGINT PRIMARY KEY,
     id_sucursal BIGINT,
@@ -220,9 +206,8 @@ CREATE TABLE REJUNTE_SA.Factura (
     fecha DATETIME2(6),
     total DECIMAL(38, 2)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Envio (
     id decimal(18,0) PRIMARY KEY,
     id_factura BIGINT,
@@ -232,9 +217,8 @@ CREATE TABLE REJUNTE_SA.Envio (
     importe_subida DECIMAL(18, 2),
     importe_total DECIMAL(18, 2)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Detalle_Factura (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     id_factura BIGINT,
@@ -243,18 +227,16 @@ CREATE TABLE REJUNTE_SA.Detalle_Factura (
     cantidad DECIMAL(18, 0),
     sub_total DECIMAL(18, 2)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Modelo (
     id BIGINT PRIMARY KEY,
     modelo NVARCHAR(255),
     descripcion NVARCHAR(255),
     precio DECIMAL(18, 2)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Medida (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     alto DECIMAL(18, 2),
@@ -262,30 +244,27 @@ CREATE TABLE REJUNTE_SA.Medida (
     profundidad DECIMAL(18, 2),
     precio DECIMAL(18, 2)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Tela (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     id_color BIGINT,
     id_textura BIGINT
 )
-GO
 
+GO
 CREATE TABLE REJUNTE_SA.Textura (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     descripcion NVARCHAR(255)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Relleno (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     densidad DECIMAL(38,2)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Madera (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     id_color BIGINT,
@@ -318,9 +297,8 @@ CREATE TABLE REJUNTE_SA.Dureza (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     descripcion NVARCHAR(255)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Sillon (
     id BIGINT PRIMARY KEY,
     id_modelo BIGINT,
@@ -329,24 +307,23 @@ CREATE TABLE REJUNTE_SA.Sillon (
     id_tela BIGINT, 
     id_relleno BIGINT
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Material_Tipo (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     descripcion NVARCHAR(255)
 )
-GO
 
--- ok
+GO
 CREATE TABLE REJUNTE_SA.Color (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     descripcion NVARCHAR(255)
 )
-GO
+
 
 
 --FOREIGN KEYS
+GO
 ALTER TABLE REJUNTE_SA.Localidad
 ADD FOREIGN KEY (id_provincia) REFERENCES REJUNTE_SA.Provincia(id);
 
@@ -561,45 +538,47 @@ BEGIN
     JOIN REJUNTE_SA.Localidad L2 ON l2.nombre = M4.Sucursal_Localidad AND L2.id_provincia = P.id
     JOIN REJUNTE_SA.Datos_Contacto DC ON DC.mail = M4.Sucursal_mail AND DC.telefono = M4.Sucursal_telefono
 END
-GO
+
 	
---migrar estados pedido 
-CREATE PROCEDURE REJUNTE_SA.migrar_estados_pedido AS
-BEGIN 
-INSERT INTO REJUNTE_SA.EstadoPedido (descripcion)
-SELECT DISTINCT m.Pedido_Estado 
-FROM [GD1C2025].[gd_esquema].[Maestra] m 
-WHERE m.Pedido_Estado IS NOT NULL
-END 
+--migrar estados pedido
 GO
+CREATE PROCEDURE REJUNTE_SA.migrar_estados_pedido
+AS
+BEGIN 
+    INSERT INTO REJUNTE_SA.Estado_Pedido (descripcion)
+    SELECT DISTINCT m.Pedido_Estado
+    FROM [GD1C2025].[gd_esquema].[Maestra] m
+    WHERE m.Pedido_Estado IS NOT NULL
+END
 
 --migrar Pedido
 GO
 CREATE PROCEDURE REJUNTE_SA.migrar_pedidos
 AS
 BEGIN
-
-    INSERT INTO REJUNTE_SA.Pedido (nro_pedido, id_sucursal, id_cliente, fecha, total, id_estado_pedido)
-        SELECT DISTINCT m.Pedido_Numero,
-            s.id,
-            c.id,
-            m.Pedido_Fecha,
-            m.Pedido_Total,
-            ep.id
-        FROM [GD1C2025].[gd_esquema].[Maestra] m
-        JOIN REJUNTE_SA.Sucursal s
-         ON s.numero_sucursal = m.Sucursal_NroSucursal AND s.direccion = m.Sucursal_Direccion 
-		 JOIN REJUNTE_SA.Localidad l
-		 ON l.nombre = m.Sucursal_Localidad AND l.id = s.id_localidad
-		 JOIN REJUNTE_SA.Provincia p 
-		 ON p.nombre = m.Sucursal_Provincia AND p.id = l.id_provincia
-		 JOIN REJUNTE_SA.Cliente c
-         ON c.nombre = m.Cliente_Nombre AND c.apellido = m.Cliente_Apellido AND c.dni = m.Cliente_Dni AND c.direccion = m.Cliente_Direccion 
-         JOIN REJUNTE_SA.EstadoPedido ep
-         ON ep.descripcion = m.Pedido_Estado
-         WHERE m.Pedido_Numero IS NOT NULL AND m.Pedido_Fecha IS NOT NULL AND m.Pedido_Total IS NOT NULL
+    INSERT INTO REJUNTE_SA.Pedido (id, id_sucursal, id_cliente, fecha, total, id_estado_pedido)
+    SELECT DISTINCT m.Pedido_Numero,
+        s.id,
+        c.id,
+        m.Pedido_Fecha,
+        m.Pedido_Total,
+        ep.id
+    FROM [GD1C2025].[gd_esquema].[Maestra] m
+    JOIN REJUNTE_SA.Sucursal s
+        ON s.id = m.Sucursal_NroSucursal AND s.direccion = m.Sucursal_Direccion
+    JOIN REJUNTE_SA.Localidad l
+        ON l.nombre = m.Sucursal_Localidad AND l.id = s.id_localidad
+    JOIN REJUNTE_SA.Provincia p
+        ON p.nombre = m.Sucursal_Provincia AND p.id = l.id_provincia
+    JOIN REJUNTE_SA.Cliente c
+        ON c.nombre = m.Cliente_Nombre AND c.apellido = m.Cliente_Apellido AND c.dni = m.Cliente_Dni AND c.direccion = m.Cliente_Direccion
+    JOIN REJUNTE_SA.Estado_Pedido ep
+        ON ep.descripcion = m.Pedido_Estado
+    WHERE
+        m.Pedido_Numero IS NOT NULL AND
+        m.Pedido_Fecha IS NOT NULL AND
+        m.Pedido_Total IS NOT NULL
 END
-GO
 
 --migrar compras
 GO
@@ -614,25 +593,28 @@ BEGIN
             m.Compra_Total
         FROM [GD1C2025].[gd_esquema].[Maestra] m
         JOIN REJUNTE_SA.Sucursal s
-        ON s.numero_sucursal = m.Sucursal_NroSucursal
+        ON s.id = m.Sucursal_NroSucursal
         JOIN REJUNTE_SA.Proveedor p
         ON p.razon_social = m.Proveedor_RazonSocial AND p.cuit = m.Proveedor_Cuit
         WHERE m.Compra_Numero IS NOT NULL AND m.Compra_Fecha IS NOT NULL AND m.Compra_Total IS NOT NULL
 END
-GO
 
-CREATE PROCEDURE REJUNTE_SA.migrar_cancelacionPedido AS
-BEGIN 
-INSERT INTO REJUNTE_SA.CancelacionPedido (id_pedido, fecha, motivo)
-SELECT DISTINCT p.id , m.Pedido_Cancelacion_Fecha, m.Pedido_Cancelacion_Motivo
-FROM [GD1C2025].[gd_esquema].[Maestra] m
-JOIN REJUNTE_SA.Pedido p
-ON p.fecha = m.Pedido_Fecha and p.total = m.Pedido_Total
-WHERE m.Pedido_Numero IS NOT NULL 
-AND m.Pedido_Cancelacion_Fecha IS NOT NULL
-AND m.Pedido_Cancelacion_Motivo IS NOT NULL
-END 
 GO
+CREATE PROCEDURE REJUNTE_SA.migrar_cancelacion_pedido
+AS
+BEGIN 
+    INSERT INTO REJUNTE_SA.Cancelacion_Pedido (id_pedido, fecha, motivo)
+    SELECT 
+        DISTINCT p.id, 
+        m.Pedido_Cancelacion_Fecha, 
+        m.Pedido_Cancelacion_Motivo
+    FROM [GD1C2025].[gd_esquema].[Maestra] m
+    JOIN REJUNTE_SA.Pedido p
+        ON p.fecha = m.Pedido_Fecha and p.total = m.Pedido_Total
+    WHERE m.Pedido_Numero IS NOT NULL 
+        AND m.Pedido_Cancelacion_Fecha IS NOT NULL
+        AND m.Pedido_Cancelacion_Motivo IS NOT NULL
+END 
 
 --migrar factura 
 GO
@@ -661,20 +643,20 @@ GO
 CREATE PROCEDURE REJUNTE_SA.migrar_envios
 AS
 BEGIN 
-INSERT INTO REJUNTE_SA.Envio (id, id_factura, fecha_programada, fecha_entrega, importe_traslado, importe_subida, importe_total)
-SELECT DISTINCT m.Envio_numero,
-f.id,
-m.Envio_Fecha_Programada,
-m.Envio_Fecha,
-m.Envio_ImporteTraslado,
-m.Envio_importeSubida,
-m.Envio_Total
-FROM [GD1C2025].[gd_esquema].[Maestra] m
-JOIN REJUNTE_SA.Factura f
-ON f.id = m.Factura_Numero AND f.fecha = m.Factura_Fecha AND f.total = m.Factura_Total
-WHERE m.Envio_numero IS NOT NULL
-AND m.Envio_Fecha IS NOT NULL
-AND m.Envio_Total IS NOT NULL
+    INSERT INTO REJUNTE_SA.Envio (id, id_factura, fecha_programada, fecha_entrega, importe_traslado, importe_subida, importe_total)
+    SELECT DISTINCT m.Envio_numero,
+        f.id,
+        m.Envio_Fecha_Programada,
+        m.Envio_Fecha,
+        m.Envio_ImporteTraslado,
+        m.Envio_importeSubida,
+        m.Envio_Total
+    FROM [GD1C2025].[gd_esquema].[Maestra] m
+    JOIN REJUNTE_SA.Factura f
+        ON f.id = m.Factura_Numero AND f.fecha = m.Factura_Fecha AND f.total = m.Factura_Total
+    WHERE m.Envio_numero IS NOT NULL
+        AND m.Envio_Fecha IS NOT NULL
+        AND m.Envio_Total IS NOT NULL
 END 
 
 
@@ -877,6 +859,68 @@ BEGIN
         M.Sillon_Medida_Profundidad IS NOT NULL
 END
 
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_detalle_pedido
+AS
+BEGIN
+    INSERT INTO REJUNTE_SA.Detalle_Pedido(id_pedido, id_sillon, cantidad, precio, subtotal)
+    SELECT
+        DISTINCT M.Pedido_Numero,
+        M.Sillon_Codigo,
+        M.Detalle_Pedido_Cantidad,
+        M.Detalle_Pedido_Precio,
+        M.Detalle_Pedido_SubTotal
+    FROM [GD1C2025].gd_esquema.Maestra M
+    WHERE
+        M.Pedido_Numero IS NOT NULL AND
+        M.Sillon_Codigo IS NOT NULL
+    ORDER BY Pedido_Numero, Detalle_Pedido_Precio
+END
+
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_materiales_x_tela
+AS
+BEGIN
+    INSERT INTO REJUNTE_SA.Material_X_Tela(id_material, id_tela)
+    SELECT
+        DISTINCT M2.id,
+        T.id
+    FROM [GD1C2025].gd_esquema.Maestra M
+    JOIN REJUNTE_SA.Material M2 ON M2.nombre = M.Material_Nombre AND M2.descripcion = M.Material_Descripcion AND M2.precio = M.Material_Precio
+    join REJUNTE_SA.Textura TX on M.Tela_Textura = TX.descripcion
+    JOIN REJUNTE_SA.Color C ON M.Tela_Color = C.descripcion
+    JOIN REJUNTE_SA.Tela T ON T.id_color = C.id AND T.id_textura = TX.id
+END
+
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_materiales_x_madera
+AS
+BEGIN
+    INSERT INTO REJUNTE_SA.Material_X_Madera(id_material, id_madera)
+    SELECT
+        DISTINCT M2.id,
+        M3.id
+    FROM [GD1C2025].gd_esquema.Maestra M
+    JOIN REJUNTE_SA.Material M2 ON M2.nombre = M.Material_Nombre AND M2.descripcion = M.Material_Descripcion AND M2.precio = M.Material_Precio
+    join REJUNTE_SA.Dureza D on M.Madera_Dureza = D.descripcion
+    JOIN REJUNTE_SA.Color C ON M.Madera_Color = C.descripcion
+    JOIN REJUNTE_SA.Madera M3 ON M3.id_color = C.id AND M3.id_dureza = D.id
+END
+
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_materiales_x_relleno
+AS
+BEGIN
+    INSERT INTO REJUNTE_SA.Material_X_Relleno(id_material, id_relleno)
+    SELECT
+        DISTINCT M2.id,
+        R.id
+    FROM [GD1C2025].gd_esquema.Maestra M
+    JOIN REJUNTE_SA.Material M2 ON M2.nombre = M.Material_Nombre AND M2.descripcion = M.Material_Descripcion AND M2.precio = M.Material_Precio
+    JOIN REJUNTE_SA.Relleno R ON R.densidad = M.Relleno_Densidad
+END
+
+
 -- INICIO EXECS PROCEDURES
 go
 exec REJUNTE_SA.migrar_provincias
@@ -932,3 +976,26 @@ exec REJUNTE_SA.migrar_medidas
 go
 exec REJUNTE_SA.migrar_sillon
 
+go
+exec REJUNTE_SA.migrar_materiales_x_madera
+
+go
+exec REJUNTE_SA.migrar_materiales_x_relleno
+
+go
+exec REJUNTE_SA.migrar_materiales_x_tela
+
+go
+exec REJUNTE_SA.migrar_estados_pedido
+
+go
+exec REJUNTE_SA.migrar_pedidos
+
+go
+exec REJUNTE_SA.migrar_compra
+
+go
+exec REJUNTE_SA.migrar_detalle_pedido
+
+go
+exec REJUNTE_SA.migrar_cancelacion_pedido
