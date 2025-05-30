@@ -1047,3 +1047,5 @@ exec REJUNTE_SA.migrar_cancelacion_pedido
 GO
 EXEC REJUNTE_SA.migrar_detalles_compra
 
+go
+exec REJUNTE_sA.migrar_detalle_factura
