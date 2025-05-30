@@ -50,7 +50,7 @@ Para correr el archivo .puml, deben tener instalado:
 - [x] Factura
 - [x] Compra
 - [ ] Detalle_Factura
-- [ ] Detalle_Compra
+- [x] Detalle_Compra
 - [x] Envio
 - [x] Sillon
 - [x] Relleno
