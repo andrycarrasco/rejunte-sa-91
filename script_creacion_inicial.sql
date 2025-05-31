@@ -659,7 +659,27 @@ BEGIN
         AND m.Envio_Total IS NOT NULL
 END 
 
-
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_detalle_factura 
+AS 
+BEGIN
+INSERT INTO REJUNTE_SA.Detalle_Factura(id_factura, id_detalle_pedido, precio, cantidad, sub_total)
+SELECT
+    DISTINCT f.id AS id_factura,
+    dp.id AS id_detalle_pedido,
+    m.Detalle_Factura_Precio,
+    m.Detalle_Factura_Cantidad,
+    m.Detalle_Factura_SubTotal
+    FROM [GD1C2025].[gd_esquema].[Maestra] m
+    JOIN REJUNTE_SA.Factura f ON f.id = m.Factura_Numero
+    JOIN REJUNTE_SA.Pedido p ON p.id = m.Pedido_Numero AND p.fecha = m.Pedido_Fecha AND p.total = m.Pedido_Total
+    JOIN REJUNTE_SA.Detalle_Pedido dp ON dp.precio = m.Detalle_Pedido_Precio AND dp.subtotal = m.Detalle_Pedido_SubTotal AND dp.cantidad = m.Detalle_Pedido_Cantidad AND p.id = dp.id_pedido
+WHERE
+    m.Detalle_Factura_Cantidad IS NOT NULL
+    AND m.Detalle_Factura_Precio IS NOT NULL
+    AND m.Detalle_Factura_SubTotal IS NOT NULL
+END 
+	
 GO
 CREATE PROCEDURE REJUNTE_SA.migrar_colores
 AS
@@ -1024,3 +1044,6 @@ exec REJUNTE_SA.migrar_cancelacion_pedido
 
 GO
 EXEC REJUNTE_SA.migrar_detalles_compra
+
+go
+exec REJUNTE_sA.migrar_detalle_factura
