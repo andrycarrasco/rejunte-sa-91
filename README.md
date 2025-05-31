@@ -49,21 +49,23 @@ Para correr el archivo .puml, deben tener instalado:
 - [x] Proveedor
 - [x] Factura
 - [x] Compra
-- [ ] Detalle_Factura
+- [x] Detalle_Factura
 - [x] Detalle_Compra
 - [x] Envio
 - [x] Sillon
-- [x] Relleno
-- [x] Densidad
 - [x] Modelo
 - [x] Medida
+- [x] Relleno
 - [x] Tela
-- [x] Textura
 - [x] Madera
+- [x] Textura
 - [x] Dureza
-- [x] Material_Tipo
+- [x] Color
 - [x] Material
+- [x] Material_Tipo
 - [x] Material_X_Tela
 - [x] Material_X_Madera
 - [x] Material_X_Relleno
-- [x] Color
+
+
+Documento de estategia [https://docs.google.com/document/d/1AvhBETJXtDPDTCWGxcB-HI_BDj7XrWqMHGBwwzTivP4/edit?usp=sharing]

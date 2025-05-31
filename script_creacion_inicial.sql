@@ -30,8 +30,8 @@ IF EXISTS(	select
 	)
 	BEGIN
 
-	PRINT 'Existen procedures de una ejecucion pasada'
-	PRINT 'Se procede a borrarlos...'
+	PRINT N'Existen procedures de una ejecucion pasada'
+	PRINT N'Se procede a borrarlos...'
 	DECLARE @sql NVARCHAR(MAX) = N'';
 	SELECT @sql += N'
 	DROP PROCEDURE [REJUNTE_SA].'
@@ -52,8 +52,8 @@ IF EXISTS (
     WHERE type IN ('FN', 'IF', 'TF')
 )
 BEGIN
-    PRINT 'Existen funciones de una ejecución pasada'
-    PRINT 'Se procede a borrarlas...'
+    PRINT N'Existen funciones de una ejecución pasada'
+    PRINT N'Se procede a borrarlas...'
     DECLARE @sql NVARCHAR(MAX) = N'';
     SELECT @sql += N'
     DROP FUNCTION ' + QUOTENAME(SCHEMA_NAME(schema_id)) + '.' + QUOTENAME(name) + ';'
@@ -73,8 +73,8 @@ IF EXISTS (
     WHERE type = 'V'
 )
 BEGIN
-    PRINT 'Existen vistas de una ejecución pasada'
-    PRINT 'Se procede a borrarlas...'
+    PRINT N'Existen vistas de una ejecución pasada'
+    PRINT N'Se procede a borrarlas...'
     DECLARE @sql NVARCHAR(MAX) = N'';
     SELECT @sql += N'
     DROP VIEW ' + QUOTENAME(SCHEMA_NAME(schema_id)) + '.' + QUOTENAME(name) + ';'
@@ -1046,4 +1046,7 @@ GO
 EXEC REJUNTE_SA.migrar_detalles_compra
 
 go
-exec REJUNTE_sA.migrar_detalle_factura
+exec REJUNTE_SA.migrar_detalle_factura
+
+go
+exec REJUNTE_SA.migrar_envios
