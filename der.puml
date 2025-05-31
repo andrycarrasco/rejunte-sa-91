@@ -257,13 +257,9 @@ Factura ||--o{ Detalle_Factura
 Factura ||--|| Envio 
 Compra ||--o{ Detalle_Compra 
 
-' Madera }o--|| Color
-' Tela }o--|| Color
-
 Color ||-down-o{ Madera
 Color ||-down-o{ Tela
 
-' left to right direction
 Sillon }o-left-|| Modelo 
 Sillon }o-down-|| Medida
 Sillon }o-left-|| Tela
