@@ -1,4 +1,4 @@
-@startuml
+@startuml sillones
 skinparam linetype ortho
 hide circle
 skinparam shadowing false
@@ -257,28 +257,28 @@ Factura ||--o{ Detalle_Factura
 Factura ||--|| Envio 
 Compra ||--o{ Detalle_Compra 
 
-Madera }o--|| Color
-Tela }o--|| Color
+Color ||-down-o{ Madera
+Color ||-down-o{ Tela
 
-Sillon }o--|| Modelo 
-Sillon }o--|| Medida
-Sillon }o--|| Tela
-Sillon }o--|| Madera
-Sillon }o--|| Relleno
+Sillon }o-left-|| Modelo 
+Sillon }o-down-|| Medida
+Sillon }o-left-|| Tela
+Sillon }o-up-|| Madera
+Sillon }o-right-|| Relleno
 
 ' Relaciones de materiales
-Material }o--|| Material_Tipo
+Material }o-left-|| Material_Tipo
 
-Material_X_Madera }o--|| Madera
-Material_X_Tela }o--|| Tela
-Material_X_Relleno }o--|| Relleno
+Material_X_Madera }o-down-|| Madera
+Material_X_Tela }o-down-|| Tela
+Material_X_Relleno }o-down-|| Relleno
 
-Material ||--o{ Material_X_Relleno
-Material ||--o{ Material_X_Madera
-Material ||--o{ Material_X_Tela
+Material ||-left-o{ Material_X_Relleno
+Material ||-down-o{ Material_X_Madera
+Material ||-right-o{ Material_X_Tela
 
-Madera }o--|| Dureza
-Tela }o--|| Textura
+Madera }o-left-|| Dureza
+Tela }o-right-|| Textura
 
 Factura }o--|| Cliente
 Factura }o--|| Sucursal
