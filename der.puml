@@ -1,5 +1,4 @@
 @startuml
-
 entity BI_Tiempo {
   id BIGINT PRIMARY KEY
   anio INT
@@ -24,14 +23,15 @@ entity BI_turno_venta {
   horario_fin TIME
 }
 
-entity BI_ModeloSillon {
+entity BI_modelo_sillon {
   id BIGINT PRIMARY KEY
-  nombre_modelo VARCHAR
+  nombre_modelo NVARCHAR(255)
+  descripcion NVARCHAR(255)
+  precio decimal(18,2)
 }
 
-entity BI_EstadoPedido {
+entity BI_estado_pedido {
   id BIGINT PRIMARY KEY
   detalle NVARCHAR(255)
 }
-
 @enduml
