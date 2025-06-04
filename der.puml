@@ -1,293 +1,37 @@
-@startuml sillones
-skinparam linetype ortho
-hide circle
-skinparam shadowing false
+@startuml
 
-' Entidades principales
-entity "Pedido" {
-  + id : decimal(18) [PK]
-  --
-  id_sucursal : integer(8) [FK]
-  id_cliente : bigint(8) [FK]
-  fecha : datetime2(8)
-  total : decimal(9)
-  id_estado_pedido : nvarchar(255)
+entity BI_Tiempo {
+  id BIGINT PRIMARY KEY
+  anio INT
+  cuatrimestre INT
+  mes INT
 }
 
-entity "Estado_Pedido" {
-  + id : decimal(18) [PK]
-  --
-  descripcion : nvarchar(255)
+entity BI_ubicacion {
+  id BIGINT PRIMARY KEY
+  nombre_provincia NVARCHAR(255)
+  nombre_localidad NVARCHAR(255)
 }
 
-entity "Detalle_Pedido" {
-  + id : bigint(8)
-  --
-  id_pedido : decimal(18) [FK]
-  id_sillon: bigint(8) [FK]
-  cantidad : bigint(8)
-  precio : decimal(9)
-  subtotal : decimal(9)
+entity BI_rango_etario {
+  id BIGINT PRIMARY KEY
+  rango NVARCHAR(20)
 }
 
-entity "Cancelacion_Pedido" {
-  + id : bigint(8) [PK]
-  --
-  id_pedido : decimal(18) [FK]
-  fecha : datetime2(8)
-  motivo : nvarchar(255)
+entity BI_turno_venta {
+  id BIGINT PRIMARY KEY
+  horario_inicio TIME
+  horario_fin TIME
 }
 
-entity "Sucursal" {
-  + id : bigint(8) [PK]
-  --
-  id_datos_contacto : bigint(8) [FK]
-  id_localidad : bigint(8) [FK]
-  direccion : nvarchar(255)
+entity BI_ModeloSillon {
+  id BIGINT PRIMARY KEY
+  nombre_modelo VARCHAR
 }
 
-entity "Cliente" {
-  + id_cliente : bigint(8) [PK]
-  --
-  dni : bigint(8) UNIQUE
-  id_datos_contacto : bigint(8) [FK]
-  id_localidad : bigint(8) [FK]
-  direccion : nvarchar(255)
-  nombre : nvarchar(255)
-  apellido : nvarchar(255)
-  fecha_nacimiento : datetime2(8)
+entity BI_EstadoPedido {
+  id BIGINT PRIMARY KEY
+  detalle NVARCHAR(255)
 }
-
-entity "Datos_Contacto" {
-  + id: bigint(8) [PK]
-  --
-  telefono : bigint(8)
-  mail : bigint(8)
-}
-
-entity "Localidad" {
-  +id : bigint(8) [PK]
-  --
-  +id_provincia : bigint(8) [FK]
-  nombre : nvarchar(255)
-}
-
-entity "Provincia" {
-  +id : bigint(8) [PK]
-  --
-  nombre : nvarchar(255)
-}
-
-entity "Proveedor" {
-  + id : bigint(8) [PK]
-  --
-  id_datos_contacto : bigint(8) [FK]
-  id_localidad : bigint(8) [FK]
-  direccion : nvarchar(255)
-  razon_social : nvarchar(255)
-  cuit : nvarchar(255)
-}
-
-' Entidades de transacción
-entity "Factura" {
-  + id : bigint(8) [PK]
-  --
-  id_cliente : bigint(8) [FK]
-  id_sucursal : bigint(8) [FK]
-  fecha : datetime2(8)
-  total : decimal(17)
-}
-
-entity "Compra" {
-  + id : decimal(9) [PK]
-  --
-  id_sucursal : bigint(8) [FK]
-  id_proveedor : bigint(8) [FK]
-  fecha : datetime2(8)
-  total : decimal(9)
-}
-
-entity "Detalle_Factura" {
-  + id : bigint(8) [PK]
-  --
-  id_factura : bigint(8) [FK]
-  id_detalle_pedido : bigint(8) [FK]
-  precio : decimal(9)
-  cantidad : decimal(9)
-  sub_total : decimal(9)
-}
-
-entity "Detalle_Compra" {
-  + id : bigint(8) [PK]
-  --
-  id_compra: decimal(9) [FK]
-  id_material: bigint(8) [FK]
-  precio : decimal(9)
-  cantidad : decimal(9)
-  subtotal : decimal(9)
-}
-
-entity "Envio" {
-  + id : bigint(8) [PK]
-  --
-  id_factura : bigint(8) [FK]
-  fecha_programada : datetime2(8)
-  fecha_entrega : date
-  importe_traslado : decimal(9)
-  importe_subida : decimal(9)
-}
-
-' Entidades de productos
-entity "Sillon" {
-  + id : bigint(8) [PK]
-  --
-  id_modelo : bigint(8) [FK]
-  id_medida : bigint(8) [FK]
-  id_tela : bigint(8) [FK]
-  id_madera : bigint(8) [FK]
-  id_relleno : bigint(8) [FK]
-}
-
-entity "Relleno" {
-  + id : bigint(8) [PK]
-  --
-  densidad : decimal(38,2)
-}
-
-entity "Modelo" {
-  + id : bigint(8) [PK]
-  --
-  modelo : nvarchar(255)
-  descripcion : nvarchar(255)
-  precio : decimal(9)
-}
-
-entity "Medida" {
-  + id : bigint(8) [PK]
-  --
-  alto : decimal(9)
-  ancho : decimal(9)
-  profundidad : decimal(9)
-  precio : decimal(9)
-}
-
-' Entidades de materiales
-entity "Tela" {
-  + id : bigint(8) [PK]
-  --
-  id_color : bigint(8) [FK]
-  id_textura : bigint(8) [FK]
-}
-
-entity "Textura" {
-  + id : bigint(8) [PK]
-  --
-  descripcion : nvarchar(255)
-}
-
-entity "Madera" {
-  + id : bigint(8) [PK]
-  --
-  id_color : bigint(8) [FK]
-  id_dureza : bigint(8) [FK]
-}
-
-entity "Dureza" {
-  + id : bigint(8) [PK]
-  --
-  descripcion : nvarchar(255)
-}
-
-entity "Material_Tipo" {
-  + id : bigint(8) [PK]
-  --
-  descripcion : nvarchar(255)
-}
-
-entity "Material" {
-  + id : bigint(8) [PK]
-  --
-  id_material_tipo : bigint(8) [FK]
-  nombre : nvarchar(255)
-  descripcion : nvarchar(255)
-  precio : decimal(17)
-}
-
-entity "Material_X_Tela" {
-  + id_material : bigint(8) [PK] [FK]
-  + id_tela : bigint(8) [PK] [FK]
-  --
-}
-
-entity "Material_X_Madera" {
-  + id_material : bigint(8) [PK] [FK]
-  + id_madera : bigint(8) [PK] [FK]
-  --
-}
-
-entity "Material_X_Relleno" {
-  + id_material : bigint(8) [PK] [FK]
-  + id_relleno : bigint(8) [PK] [FK]
-  --
-}
-
-entity "Color" {
-  + id : bigint(8) [PK]
-  --
-  descripcion : nvarchar(255)
-}
-
-
-' Relaciones principales
-Cliente ||--o{ Pedido 
-Sucursal ||--o{ Pedido 
-Sucursal ||--o{ Compra 
-Proveedor ||--o{ Compra 
-Pedido ||--o| Cancelacion_Pedido
-Proveedor }o--|| Datos_Contacto
-
-Cliente }o--|| Localidad
-Sucursal }o--|| Localidad
-Proveedor }o--|| Localidad
-Localidad }o--|| Provincia
-
-Detalle_Pedido }o--|| Sillon
-Pedido ||--o{ Detalle_Pedido 
-Factura ||--o{ Detalle_Factura 
-Factura ||--|| Envio 
-Compra ||--o{ Detalle_Compra 
-
-Color ||-down-o{ Madera
-Color ||-down-o{ Tela
-
-Sillon }o-left-|| Modelo 
-Sillon }o-down-|| Medida
-Sillon }o-left-|| Tela
-Sillon }o-up-|| Madera
-Sillon }o-right-|| Relleno
-
-' Relaciones de materiales
-Material }o-left-|| Material_Tipo
-
-Material_X_Madera }o-down-|| Madera
-Material_X_Tela }o-down-|| Tela
-Material_X_Relleno }o-down-|| Relleno
-
-Material ||-left-o{ Material_X_Relleno
-Material ||-down-o{ Material_X_Madera
-Material ||-right-o{ Material_X_Tela
-
-Madera }o-left-|| Dureza
-Tela }o-right-|| Textura
-
-Factura }o--|| Cliente
-Factura }o--|| Sucursal
-
-' Relaciones de datos personales
-Datos_Contacto ||--o{ Sucursal 
-Datos_Contacto ||--o{ Cliente 
-Detalle_Compra }o--|| Material
-Estado_Pedido ||--o{ Pedido
-Detalle_Factura |o--|| Detalle_Pedido
 
 @enduml
