@@ -34,4 +34,16 @@ entity BI_estado_pedido {
   id BIGINT PRIMARY KEY
   detalle NVARCHAR(255)
 }
+
+entity BI_tipo_material {
+  id BIGINT PRIMARY KEY
+  descripcion NVARCHAR(255)
+}
+
+entity BI_modelo_sillon {
+  id BIGINT PRIMARY KEY
+  modelo NVARCHAR(255)
+  descripcion NVARCHAR(255)
+  precio DECIMAL(9)
+}
 @enduml
