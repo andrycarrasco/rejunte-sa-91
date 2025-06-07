@@ -8,8 +8,11 @@ CREATE TABLE REJUNTE_SA.BI_ubicacion(
     PRIMARY KEY (id_localidad)
 )
 
-
-
+CREATE TABLE REJUNTE_SA.BI_turno_venta (
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    horario_inicio TIME, 
+    horario_fin TIME
+)
 -- Create Procedures
 GO
 CREATE PROCEDURE REJUNTE_SA.migrar_bi_ubicacion
@@ -22,8 +25,14 @@ BEGIN
     from REJUNTE_SA.Localidad L;
 END
 
--- Create Views
+CREATE PROCEDURE REJUNTE_SA.migrar_bi_turno_venta AS
+BEGIN 
+  INSERT INTO REJUNTE_SA.BI_turno_venta (horario_inicio, horario_fin) VALUES
+    ('08:00:00', '14:00:00'),
+    ('14:00:01', '20:00:00');
 
+END 
+-- Create Views
 
 
 -- Exec Procedures
