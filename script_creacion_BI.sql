@@ -8,9 +8,40 @@ CREATE TABLE REJUNTE_SA.BI_ubicacion(
     PRIMARY KEY (id_localidad)
 )
 
+GO
+CREATE TABLE BI_tiempo (
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    anio INT,
+    cuatrimestre INT,
+    mes INT
+)
 
+--Funciones y procedures 
+GO 
+CREATE FUNCTION REJUNTE_SA.obtenerCuatrimestre(@fecha DATETIME2(6))
+RETURNS INT
+AS
+BEGIN
+    DECLARE @mes INT, @cuatrimestre INT;
+    SET @mes = MONTH(@fecha);
 
--- Create Procedures
+    IF(@mes >= 1 AND @mes < 5)
+    BEGIN
+        SET @cuatrimestre = 1;
+    END
+
+    IF(@mes >= 5 AND @mes < 9)
+    BEGIN 
+        SET @cuatrimestre = 2;
+    END 
+
+    IF(@mes >= 9 AND @mes <= 12)
+    BEGIN 
+        SET @cuatrimestre = 3;
+    END 
+RETURN @cuatrimestre;
+END
+--Procedures de migracion
 GO
 CREATE PROCEDURE REJUNTE_SA.migrar_bi_ubicacion
 AS
@@ -22,6 +53,28 @@ BEGIN
     from REJUNTE_SA.Localidad L;
 END
 
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_bi_tiempo AS 
+BEGIN 
+    INSERT INTO BI_tiempo (anio, cuatrimestre, mes)
+    SELECT DISTINCT YEAR(f.fecha), MONTH(f.fecha), REJUNTE_SA.obtenerCuatrimestre(f.fecha)
+    FROM REJUNTE_SA.Factura f
+    UNION
+    SELECT DISTINCT YEAR(c.fecha), MONTH(c.fecha), REJUNTE_SA.obtenerCuatrimestre(c.fecha)
+    FROM REJUNTE_SA.Compra c
+    UNION
+    SELECT DISTINCT YEAR(fecha), MONTH(fecha), REJUNTE_SA.obtenerCuatrimestre(fecha)
+    FROM REJUNTE_SA.Cancelacion_Pedido 
+    UNION
+    SELECT DISTINCT YEAR(e.fecha_entrega), MONTH(e.fecha_entrega), REJUNTE_SA.obtenerCuatrimestre(e.fecha_entrega)
+    FROM REJUNTE_SA.Envio e
+    UNION
+    SELECT DISTINCT YEAR(e.fecha_programada), MONTH(e.fecha_programada), REJUNTE_SA.obtenerCuatrimestre(e.fecha_programada)
+    FROM REJUNTE_SA.Envio e
+    UNION
+    SELECT DISTINCT YEAR(p.fecha), MONTH(p.fecha), REJUNTE_SA.obtenerCuatrimestre(p.fecha)
+    FROM REJUNTE_SA.Pedido p
+END
 -- Create Views
 
 
@@ -29,3 +82,6 @@ END
 -- Exec Procedures
 GO
 exec REJUNTE_SA.migrar_bi_ubicacion
+
+GO 
+exec REJUNTE_SA.migrar_bi_tiempo
