@@ -1,10 +1,53 @@
 # rejunte-sa-91
-Para correr el archivo .puml, deben tener instalado:
-- La extension PlanUML[https://marketplace.visualstudio.com/items?itemName=jebbs.plantuml]
-- Java[http://java.com/en/download/]
-- Graphviz[http://www.graphviz.org/download/]
 
-## Creacion de Tablas
+[Documento de estategia](https://docs.google.com/document/d/1AvhBETJXtDPDTCWGxcB-HI_BDj7XrWqMHGBwwzTivP4/edit?usp=sharing)
+---
+> Integrantes:  
+> Gutierrez Zevallos, Jose Leonardo - 212.988-7  
+> Alpuy Feliu, Facundo - 172.969-0  
+> Carrasco Chui, Andry Julian - 175.611-4
+
+---
+Para correr el archivo **.puml**, deben tener instalado:
+- La extension [PlanUML](https://marketplace.visualstudio.com/items?itemName=jebbs.plantuml)
+- [Java](http://java.com/en/download/)
+- [Graphviz](http://www.graphviz.org/download/)
+---
+
+## Modelo BI (EN PROCESO)
+### Creacion de Tablas/Dimensiones BI
+- [ ] BI_ubicacion
+- [ ] BI_tiempo
+- [ ] BI_rango_etario
+- [ ] BI_turno_ventas
+- [ ] BI_tipo_material
+- [ ] BI_modelo_sillon
+- [ ] BI_estado_pedido
+
+### Creacion de Procedures BI
+- [ ] migracion_bi_ubicacion
+- [ ] migracion_bi_rango_etario
+- [ ] migracion_bi_tiempo
+- [ ] migracion_bi_turno_ventas
+- [ ] migracion_bi_tipo_material
+- [ ] migracion_bi_modelo_sillon
+- [ ] migracion_bi_estado_pedido
+ 
+### Creacion de Views BI
+- [ ] 1-Ganancias
+- [ ] 2-Factura promedio mensual
+- [ ] 3-Rendimiento de modelos
+- [ ] 4-Volumen de pedidos
+- [ ] 5-Conversion de pedidos
+- [ ] 6-Tiempo promedio de fabricación
+- [ ] 7-Promedio de Compras
+- [ ] 8-Compras por Tipo de Material
+- [ ] 9-Porcentaje de cumpliento de envíos
+- [ ] 10-Localidades que pagan mayor costo de envío
+
+## Base de datos (LISTO)
+
+### Creacion de Tablas
 - [x] Pedido
 - [x] Estado_Pedido
 - [x] Detalle_Pedido
@@ -66,6 +109,3 @@ Para correr el archivo .puml, deben tener instalado:
 - [x] Material_X_Tela
 - [x] Material_X_Madera
 - [x] Material_X_Relleno
-
-
-Documento de estategia [https://docs.google.com/document/d/1AvhBETJXtDPDTCWGxcB-HI_BDj7XrWqMHGBwwzTivP4/edit?usp=sharing]
