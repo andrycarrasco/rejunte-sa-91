@@ -19,8 +19,8 @@ GO
 CREATE TABLE REJUNTE_SA.BI_tiempo (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     anio INT,
-    cuatrimestre INT,
-    mes INT
+    mes INT,
+    cuatrimestre INT
 )
 
 --utils 
@@ -73,7 +73,7 @@ END
 GO
 CREATE PROCEDURE REJUNTE_SA.migrar_bi_tiempo AS 
 BEGIN 
-    INSERT INTO REJUNTE_SA.BI_tiempo (anio, cuatrimestre, mes)
+    INSERT INTO REJUNTE_SA.BI_tiempo (anio, mes, cuatrimestre)
     SELECT DISTINCT YEAR(f.fecha), MONTH(f.fecha), REJUNTE_SA.obtenerCuatrimestre(f.fecha)
     FROM REJUNTE_SA.Factura f
     UNION
@@ -91,6 +91,7 @@ BEGIN
     UNION
     SELECT DISTINCT YEAR(p.fecha), MONTH(p.fecha), REJUNTE_SA.obtenerCuatrimestre(p.fecha)
     FROM REJUNTE_SA.Pedido p
+    ORDER BY 1,2,3 desc
 END
 -- Create Views
 
