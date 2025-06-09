@@ -98,3 +98,5 @@ END
 -- Exec Procedures
 GO
 exec REJUNTE_SA.migrar_bi_ubicacion
+GO
+exec REJUNTE_SA.migrar_bi_tiempo
