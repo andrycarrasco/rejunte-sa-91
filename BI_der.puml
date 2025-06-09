@@ -1,0 +1,46 @@
+@startuml dimensiones
+skinparam linetype ortho
+hide circle
+skinparam shadowing false
+
+' Entidades principales
+entity "BI_tiempo" {
+    + id : bigint(8)
+    --
+    anio : bigint
+    mes: bigint
+    cuatrimeste : bigint
+
+}
+
+entity "BI_ubicacion" {
+    + id : bigint(8) [PK]
+    --
+    nombre : nvarchar(255)
+
+}
+
+entity "BI_tipo_material" {
+    + id: bigint(8) [PK]
+    --
+    nombre: nvarchar(255)
+}
+
+
+entity "BI_rango_etario" {
+
+}
+
+entity "BI_turno_ventas" {
+
+}
+
+entity "BI_modelo_sillon" {
+
+}
+
+entity "BI_estado_pedido" {
+
+}
+
+@enduml

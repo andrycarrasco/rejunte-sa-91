@@ -10,8 +10,10 @@
 ---
 Para correr el archivo **.puml**, deben tener instalado:
 - La extension [PlanUML](https://marketplace.visualstudio.com/items?itemName=jebbs.plantuml)
-- [Java](http://java.com/en/download/)
-- [Graphviz](http://www.graphviz.org/download/)
+- [Java](http://java.com/en/download/) o 
+``sudo apt install default-jre``
+- [Graphviz](http://www.graphviz.org/download/) o
+``sudo apt install graphviz ``
 ---
 
 ## Modelo BI (EN PROCESO)
