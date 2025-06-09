@@ -23,6 +23,13 @@ CREATE TABLE REJUNTE_SA.BI_tiempo (
     cuatrimestre INT
 )
 
+GO 
+CREATE TABLE REJUNTE_SA.BI_rango_etario (
+  id BIGINT IDENTITY(1,1) PRIMARY KEY,
+  edad_minima INT,
+  edad_maxima INT
+)
+
 --utils 
 GO 
 CREATE FUNCTION REJUNTE_SA.obtenerCuatrimestre(@fecha DATETIME2(6))
@@ -93,6 +100,16 @@ BEGIN
     FROM REJUNTE_SA.Pedido p
     ORDER BY 1,2,3 desc
 END
+    
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_rango_etario AS 
+BEGIN 
+INSERT INTO REJUNTE_SA.BI_rango_etario(edad_minima, edad_maxima) VALUES
+  (0,25)
+  ,(25,35)
+  ,(35,50)
+  ,(50,150)
+END 
 -- Create Views
 
 
@@ -101,3 +118,5 @@ GO
 exec REJUNTE_SA.migrar_bi_ubicacion
 GO
 exec REJUNTE_SA.migrar_bi_tiempo
+GO
+exec REJUNTE_SA.migrar_bi_rango_etario
