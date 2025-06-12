@@ -35,7 +35,33 @@ CREATE TABLE REJUNTE_SA.BI_estado_pedido (
     id BIGINT PRIMARY KEY,
     descripcion NVARCHAR(255)
 )
+
+GO
+CREATE TABLE REJUNTE_SA.BI_factura (
+    id BIGINT PRIMARY KEY,
+    id_sucursal BIGINT,
+    id_cliente BIGINT,
+    id_tiempo BIGINT,
+    id_turno_venta BIGINT,
+    total decimal (38,2)
+)
     
+GO
+CREATE TABLE REJUNTE_SA.BI_compra (
+    id DECIMAL(18, 0) PRIMARY KEY,
+    id_sucursal BIGINT,
+    id_proveedor BIGINT,
+    id_tiempo BIGINT,
+    total decimal(38,2)
+)
+    
+GO
+CREATE TABLE REJUNTE_SA.BI_sucursal (
+    id BIGINT PRIMARY KEY,
+    id_datos_contacto BIGINT,
+    id_ubicacion BIGINT,
+    direccion NVARCHAR(255)
+)
 --utils 
 GO 
 CREATE FUNCTION REJUNTE_SA.obtenerCuatrimestre(@fecha DATETIME2(6))
@@ -62,6 +88,31 @@ BEGIN
 RETURN @cuatrimestre;
 END
 
+GO
+CREATE FUNCTION REJUNTE_SA.obtener_id_tiempo (@fecha DATETIME2(6))
+RETURNS BIGINT AS 
+BEGIN 
+DECLARE @id_tiempo BIGINT
+SET @id_tiempo = (
+  SELECT id 
+  FROM REJUNTE_SA.BI_tiempo 
+  WHERE anio = YEAR(@fecha) AND mes = MONTH(@fecha) AND cuatrimestre = REJUNTE_SA.obtenerCuatrimestre(@fecha)
+)
+RETURN @id_tiempo
+END 
+
+GO
+CREATE FUNCTION REJUNTE_SA.obtener_id_turno (@fecha DATETIME2(6))
+RETURNS BIGINT AS 
+BEGIN 
+DECLARE @id_turno BIGINT
+SET @id_turno = (
+    SELECT id
+    FROM REJUNTE_SA.BI_turno_venta
+    WHERE CAST(@fecha as TIME) BETWEEN horario_inicio AND horario_fin
+)
+RETURN @id_turno
+END  
 -- Create Procedures migracion
 GO
 CREATE PROCEDURE REJUNTE_SA.migrar_bi_ubicacion
@@ -123,6 +174,47 @@ BEGIN
 INSERT INTO REJUNTE_SA.BI_estado_pedido (id, descripcion)
 SELECT * FROM REJUNTE_SA.Estado_Pedido
 END 
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_bi_factura AS 
+BEGIN
+INSERT INTO REJUNTE_SA.BI_factura (id, id_sucursal, id_cliente, id_tiempo, id_turno_venta, total)
+  SELECT 
+  id, 
+  id_sucursal,
+  id_cliente,
+  REJUNTE_SA.obtener_id_tiempo(fecha) AS 'id_tiempo',
+  REJUNTE_SA.obtener_id_turno(fecha) AS 'id_turno_venta',
+  total
+  FROM REJUNTE_SA.Factura 
+  ORDER BY id
+END
+
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_bi_compra AS
+BEGIN 
+INSERT INTO REJUNTE_SA.BI_compra (id, id_sucursal, id_proveedor, id_tiempo, total)
+SELECT 
+id, 
+id_sucursal,
+id_proveedor,
+REJUNTE_SA.obtener_id_tiempo(fecha) AS 'id_tiempo',
+total
+FROM REJUNTE_SA.Compra c
+END 
+
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_bi_sucursal AS 
+BEGIN 
+INSERT INTO REJUNTE_SA.BI_sucursal (id, id_datos_contacto, id_ubicacion, direccion)
+SELECT 
+s.id,
+s.id_datos_contacto,
+u.id_localidad,
+s.direccion
+FROM REJUNTE_SA.Sucursal s 
+JOIN REJUNTE_SA.BI_ u
+ON s.id_localidad = u.id_localidad
+END 
 -- Create Views
 
 
@@ -135,3 +227,9 @@ GO
 exec REJUNTE_SA.migrar_bi_rango_etario
 GO
 exec REJUNTE_SA.migrar_estado_pedido
+GO
+exec REJUNTE_SA.migrar_bi_factura
+GO
+exec REJUNTE_SA.migrar_bi_compra
+GO
+exec REJUNTE_SA.migrar_bi_sucursal
