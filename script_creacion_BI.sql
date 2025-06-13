@@ -2,10 +2,10 @@
 
 -- Create Tables
 GO
-CREATE TABLE REJUNTE_SA.BI_ubicacion(
-    id_localidad BIGINT,
-    nombre NVARCHAR(255),
-    PRIMARY KEY (id_localidad)
+CREATE TABLE REJUNTE_SA.BI_ubicacion (
+    id_localidad BIGINT PRIMARY KEY,
+    nombre_localidad NVARCHAR(255),
+    nombre_provincia NVARCHAR(255)
 )
 
 GO
@@ -125,6 +125,19 @@ BEGIN
     from REJUNTE_SA.Localidad L;
 END
 
+CREATE PROCEDURE REJUNTE_SA.migrar_bi_ubicacion 
+AS 
+BEGIN 
+    INSERT INTO REJUNTE_SA.BI_ubicacion (id_localidad, nombre_localidad, nombre_provincia)
+    SELECT 
+        l.id, 
+        l.nombre, 
+        p.nombre 
+        FROM REJUNTE_SA.Localidad l
+    INNER JOIN REJUNTE_SA.Provincia p
+        ON p.id = l.id_provincia
+END
+    
 GO
 CREATE PROCEDURE REJUNTE_SA.migrar_bi_turno_venta AS
 BEGIN 
