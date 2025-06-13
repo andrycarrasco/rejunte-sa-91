@@ -212,7 +212,7 @@ s.id_datos_contacto,
 u.id_localidad,
 s.direccion
 FROM REJUNTE_SA.Sucursal s 
-JOIN REJUNTE_SA.BI_ u
+JOIN REJUNTE_SA.BI_ubicacion u
 ON s.id_localidad = u.id_localidad
 END 
 -- Create Views
