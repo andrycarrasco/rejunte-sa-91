@@ -26,6 +26,19 @@ Para correr el archivo **.puml**, deben tener instalado:
 - [ ] BI_modelo_sillon
 - [ ] BI_estado_pedido
 
+
+#### Dimensiones a tener en cuenta para cada vista
+1. Dimension mes    
+2. Dimension provincia, cuatrimestre    
+3. Dimension modelos, localidad y rango etario  
+4. Dimension turnos, sucursal, mes  
+5. Dimension estado, cuatrimestre y sucursal  
+6. Dimension sucursal, cuatrimestre  
+7. Dimension mes  
+8. Dimension tipo_material, sucursal, cuatrimestre  
+9. Dimension envios  
+10. Dimension localidades  
+
 ### Creacion de Procedures BI
 - [ ] migracion_bi_ubicacion
 - [ ] migracion_bi_rango_etario
