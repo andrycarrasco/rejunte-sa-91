@@ -88,7 +88,7 @@ CREATE TABLE REJUNTE_SA.BI_modelo(
     precio DECIMAL(18, 2)
 )
 
---utils 
+--utils
 GO 
 CREATE FUNCTION REJUNTE_SA.obtenerCuatrimestre(@fecha DATETIME2(6))
 RETURNS INT
@@ -287,7 +287,16 @@ END
 
 
 -- Create Views
-
+CREATE VIEW REJUNTE_SA.BI_ingresos AS
+SELECT t.anio AS 'Anio', t.mes AS 'Mes', s.id AS 'Sucursal ', SUM(f.total - c.total) AS 'Ganancia'
+FROM REJUNTE_SA.BI_tiempo t
+INNER JOIN REJUNTE_SA.BI_factura f
+ON f.id_tiempo = t.id
+INNER JOIN REJUNTE_SA.BI_sucursal s
+ON f.id_sucursal = s.id
+INNER JOIN REJUNTE_SA.BI_compra c
+ON c.id_sucursal = s.id
+GROUP BY T.anio, t.mes, s.id
 
 -- Exec Procedures
 GO
