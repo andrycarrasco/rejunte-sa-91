@@ -2,10 +2,10 @@
 
 -- Create Tables
 GO
-CREATE TABLE REJUNTE_SA.BI_ubicacion(
-    id_localidad BIGINT,
-    nombre NVARCHAR(255),
-    PRIMARY KEY (id_localidad)
+CREATE TABLE REJUNTE_SA.BI_ubicacion (
+    id_localidad BIGINT PRIMARY KEY,
+    nombre_localidad NVARCHAR(255),
+    nombre_provincia NVARCHAR(255)
 )
 
 GO
@@ -88,6 +88,16 @@ CREATE TABLE REJUNTE_SA.BI_modelo(
     precio DECIMAL(18, 2)
 )
 
+CREATE TABLE REJUNTE_SA.BI_cliente (
+    id BIGINT PRIMARY KEY,
+    dni BIGINT UNIQUE,
+    nombre NVARCHAR(255),
+    apellido NVARCHAR(255),
+    id_tiempo_nacimiento BIGINT,
+    direccion NVARCHAR(255),
+    id_datos_contacto BIGINT,
+    id_ubicacion BIGINT
+)
 --utils
 GO 
 CREATE FUNCTION REJUNTE_SA.obtenerCuatrimestre(@fecha DATETIME2(6))
@@ -144,14 +154,17 @@ END
 
 -- Create Procedures migracion
 GO
-CREATE PROCEDURE REJUNTE_SA.migrar_bi_ubicacion
-AS
-BEGIN
-    INSERT INTO REJUNTE_SA.BI_UBICACION(id_localidad, nombre)
-    SELECT
-        L.id,
-        L.nombre
-    from REJUNTE_SA.Localidad L;
+CREATE PROCEDURE REJUNTE_SA.migrar_bi_ubicacion 
+AS 
+BEGIN 
+    INSERT INTO REJUNTE_SA.BI_ubicacion (id_localidad, nombre_localidad, nombre_provincia)
+    SELECT 
+        l.id, 
+        l.nombre, 
+        p.nombre 
+        FROM REJUNTE_SA.Localidad l
+    INNER JOIN REJUNTE_SA.Provincia p
+        ON p.id = l.id_provincia
 END
 
 GO
@@ -285,6 +298,20 @@ BEGIN
     from REJUNTE_SA.Envio E
 END
 
+CREATE PROCEDURE REJUNTE_SA.BI_migrar_cliente AS 
+BEGIN 
+INSERT INTO REJUNTE_SA.BI_cliente (id, dni, nombre, apellido, fecha_nacimiento, direccion, id_datos_contacto, id_ubicacion)
+SELECT 
+    c.id, 
+    c.dni,
+    c.nombre,
+    c.apellido,
+    c.fecha_nacimiento,
+    c.direccion,
+    c.id_datos_contacto,
+    c.id_localidad
+FROM REJUNTE_SA.Cliente c
+END 
 
 -- Create Views
 CREATE VIEW REJUNTE_SA.BI_ingresos AS
@@ -319,3 +346,5 @@ GO
 exec REJUNTE_SA.migrar_bi_envio
 GO
 exec REJUNTE_SA.migrar_bi_tipo_material
+GO 
+exec REJUNTE_SA.migrar_bi_cliente
