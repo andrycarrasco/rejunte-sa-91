@@ -62,6 +62,31 @@ CREATE TABLE REJUNTE_SA.BI_sucursal (
     id_ubicacion BIGINT,
     direccion NVARCHAR(255)
 )
+
+GO
+CREATE TABLE REJUNTE_SA.BI_tipo_material(
+    id BIGINT PRIMARY KEY,
+    descripcion NVARCHAR(255)
+)
+
+GO
+CREATE TABLE REJUNTE_SA.BI_envio(
+    id decimal(18,0) PRIMARY KEY,
+    id_factura BIGINT,
+    fecha_programada DATETIME2(6),
+    fecha_entrega DATETIME2(6),
+    importe_traslado DECIMAL(18, 2),
+    importe_subida DECIMAL(18, 2),
+    importe_total DECIMAL(18, 2)
+)
+
+GO
+CREATE TABLE REJUNTE_SA.BI_modelo(
+    id BIGINT PRIMARY KEY,
+    modelo NVARCHAR(255),
+    descripcion NVARCHAR(255),
+    precio DECIMAL(18, 2)
+)
 --utils 
 GO 
 CREATE FUNCTION REJUNTE_SA.obtenerCuatrimestre(@fecha DATETIME2(6))
@@ -115,16 +140,6 @@ RETURN @id_turno
 END  
 -- Create Procedures migracion
 GO
-CREATE PROCEDURE REJUNTE_SA.migrar_bi_ubicacion
-AS
-BEGIN
-    INSERT INTO REJUNTE_SA.BI_UBICACION(id_localidad, nombre)
-    SELECT
-        L.id,
-        L.nombre
-    from REJUNTE_SA.Localidad L;
-END
-
 CREATE PROCEDURE REJUNTE_SA.migrar_bi_ubicacion 
 AS 
 BEGIN 
@@ -228,6 +243,44 @@ FROM REJUNTE_SA.Sucursal s
 JOIN REJUNTE_SA.BI_ubicacion u
 ON s.id_localidad = u.id_localidad
 END 
+
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_bi_modelo AS
+BEGIN
+   INSERT INTO REJUNTE_SA.BI_modelo(id, modelo, descripcion, precio)
+    select
+        M.id,
+        M.modelo,
+        M.descripcion,
+        M.precio
+    from REJUNTE_SA.Modelo M
+END
+
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_bi_tipo_material AS
+BEGIN
+   INSERT INTO REJUNTE_SA.BI_tipo_material(id, descripcion)
+    select
+        MT.id,
+        MT.descripcion
+    from REJUNTE_SA.Material_Tipo MT
+END
+
+
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_bi_envio AS
+BEGIN
+   INSERT INTO REJUNTE_SA.BI_envio(id, id_factura, fecha_programada, fecha_entrega, importe_traslado, importe_subida, importe_total)
+    select
+        E.id,
+        E.id_factura,
+        E.fecha_programada,
+        E.fecha_entrega,
+        E.importe_traslado,
+        E.importe_subida,
+        E.importe_total
+    from REJUNTE_SA.Envio E
+END
 -- Create Views
 CREATE VIEW REJUNTE_SA.BI_ingresos AS
 SELECT t.anio AS 'Anio', t.mes AS 'Mes', s.id AS 'Sucursal ', SUM(f.total - c.total) AS 'Ganancia'
@@ -255,3 +308,9 @@ GO
 exec REJUNTE_SA.migrar_bi_compra
 GO
 exec REJUNTE_SA.migrar_bi_sucursal
+GO
+exec REJUNTE_SA.migrar_bi_modelo
+GO
+exec REJUNTE_SA.migrar_bi_envio
+GO
+exec REJUNTE_SA.migrar_bi_tipo_material
