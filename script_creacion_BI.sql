@@ -357,6 +357,23 @@ INNER JOIN REJUNTE_SA.BI_compra c
 ON c.id_sucursal = s.id
 GROUP BY T.anio, t.mes, s.id
 
+CREATE VIEW REJUNTE_SA.BI_volumen_pedidos AS 
+SELECT 
+s.id as 'sucursal',
+t.anio,
+t.mes,
+tv.horario_inicio AS 'horario inicio turno',
+tv.horario_fin AS 'horario fin turno',
+COUNT(DISTINCT p.id) AS 'Numero de pedidos en el mes'
+FROM REJUNTE_SA.BI_sucursal s
+INNER JOIN REJUNTE_SA.BI_pedido p 
+ON p.id_sucursal = s.id
+INNER JOIN REJUNTE_SA.BI_tiempo t 
+on t.id = p.id_tiempo
+INNER JOIN REJUNTE_SA.BI_turno_venta tv 
+ON tv.id = p.id_turno_venta
+GROUP BY s.id, t.anio, t.mes, tv.id, tv.horario_inicio, tv.horario_fin
+    
 -- Exec Procedures
 GO
 exec REJUNTE_SA.migrar_bi_ubicacion
