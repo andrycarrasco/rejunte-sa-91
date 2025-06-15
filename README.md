@@ -42,7 +42,7 @@ Para correr el archivo **.puml**, deben tener instalado:
 - [ ] migracion_bi_estado_pedido
  
 ### Creacion de Views BI
-- [ ] 1-Ganancias
+- [x] 1-Ganancias
 - [ ] 2-Factura promedio mensual
 - [ ] 3-Rendimiento de modelos
 - [ ] 4-Volumen de pedidos
