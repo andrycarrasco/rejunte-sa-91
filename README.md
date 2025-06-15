@@ -30,6 +30,7 @@ Para correr el archivo **.puml**, deben tener instalado:
 - [X] BI_sucursal
 - [X] BI_envio
 - [x] Bi_cliente
+- [X] BI_pedido
 
 
 
@@ -37,7 +38,7 @@ Para correr el archivo **.puml**, deben tener instalado:
 1. Dimension mes    
 2. Dimension provincia, cuatrimestre    
 3. Dimension modelos, localidad y rango etario  
-4. Dimension turnos, sucursal, mes  
+4. Dimension turnos, sucursal, mes, pedido  
 5. Dimension estado, cuatrimestre y sucursal  
 6. Dimension sucursal, cuatrimestre  
 7. Dimension mes  
@@ -58,7 +59,7 @@ Para correr el archivo **.puml**, deben tener instalado:
 - [x] 1-Ganancias
 - [ ] 2-Factura promedio mensual
 - [ ] 3-Rendimiento de modelos
-- [ ] 4-Volumen de pedidos
+- [X] 4-Volumen de pedidos
 - [ ] 5-Conversion de pedidos
 - [ ] 6-Tiempo promedio de fabricación
 - [ ] 7-Promedio de Compras
