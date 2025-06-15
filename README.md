@@ -18,13 +18,19 @@ Para correr el archivo **.puml**, deben tener instalado:
 
 ## Modelo BI (EN PROCESO)
 ### Creacion de Tablas/Dimensiones BI
-- [ ] BI_ubicacion
-- [ ] BI_tiempo
-- [ ] BI_rango_etario
-- [ ] BI_turno_ventas
-- [ ] BI_tipo_material
-- [ ] BI_modelo_sillon
-- [ ] BI_estado_pedido
+- [X] BI_ubicacion
+- [X] BI_tiempo
+- [X] BI_rango_etario
+- [X] BI_turno_ventas
+- [X] BI_tipo_material
+- [X] BI_modelo_sillon
+- [X] BI_estado_pedido
+- [X] BI_factura
+- [X] BI_compra
+- [X] BI_sucursal
+- [X] BI_envio
+- [ ] Bi_cliente
+
 
 ### Creacion de Procedures BI
 - [ ] migracion_bi_ubicacion
