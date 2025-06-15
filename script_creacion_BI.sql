@@ -87,6 +87,18 @@ CREATE TABLE REJUNTE_SA.BI_modelo(
     descripcion NVARCHAR(255),
     precio DECIMAL(18, 2)
 )
+
+GO
+CREATE TABLE REJUNTE_SA.BI_cliente (
+    id BIGINT PRIMARY KEY,
+    dni BIGINT UNIQUE,
+    nombre NVARCHAR(255),
+    apellido NVARCHAR(255),
+    id_tiempo_nacimiento BIGINT,
+    direccion NVARCHAR(255),
+    id_datos_contacto BIGINT,
+    id_ubicacion BIGINT
+)
 --utils 
 GO 
 CREATE FUNCTION REJUNTE_SA.obtenerCuatrimestre(@fecha DATETIME2(6))
@@ -281,6 +293,22 @@ BEGIN
         E.importe_total
     from REJUNTE_SA.Envio E
 END
+
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_BI_cliente AS 
+BEGIN 
+    INSERT INTO REJUNTE_SA.BI_cliente (id, dni, nombre, apellido, fecha_nacimiento, direccion, id_datos_contacto, id_ubicacion)
+    SELECT 
+        c.id, 
+        c.dni,
+        c.nombre,
+        c.apellido,
+        c.fecha_nacimiento,
+        c.direccion,
+        c.id_datos_contacto,
+        c.id_localidad
+    FROM REJUNTE_SA.Cliente c
+END
 -- Create Views
 CREATE VIEW REJUNTE_SA.BI_ingresos AS
 SELECT t.anio AS 'Anio', t.mes AS 'Mes', s.id AS 'Sucursal ', SUM(f.total - c.total) AS 'Ganancia'
@@ -314,3 +342,5 @@ GO
 exec REJUNTE_SA.migrar_bi_envio
 GO
 exec REJUNTE_SA.migrar_bi_tipo_material
+GO 
+exec REJUNTE_SA.migrar_BI_cliente
