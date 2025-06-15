@@ -111,6 +111,18 @@ CREATE TABLE REJUNTE_SA.BI_cliente (
     id_datos_contacto BIGINT,
     id_ubicacion BIGINT
 )
+    
+GO
+CREATE TABLE REJUNTE_SA.BI_pedido (
+    id decimal(18,0) PRIMARY KEY,
+    id_sucursal BIGINT,
+    id_cliente BIGINT,
+    id_tiempo BIGINT,
+    id_turno_venta BIGINT,
+    total decimal(18,2),
+    id_estado_pedido BIGINT
+)
+    
 --utils 
 GO 
 CREATE FUNCTION REJUNTE_SA.obtenerCuatrimestre(@fecha DATETIME2(6))
@@ -324,6 +336,13 @@ INSERT INTO REJUNTE_SA.BI_cliente (id, dni, nombre, apellido, id_rango_etario, d
     ORDER BY c.id
 END 
 
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_bi_pedido
+AS 
+BEGIN 
+INSERT INTO REJUNTE_SA.BI_pedido(id, id_sucursal, id_cliente, id_tiempo, id_turno_venta, total, id_estado_pedido)
+
+END 
 -- Create Views
 CREATE VIEW REJUNTE_SA.BI_ingresos AS
 SELECT t.anio AS 'Anio', t.mes AS 'Mes', s.id AS 'Sucursal ', SUM(f.total - c.total) AS 'Ganancia'
