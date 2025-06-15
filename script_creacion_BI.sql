@@ -306,21 +306,22 @@ BEGIN
     from REJUNTE_SA.Envio E
 END
 
-CREATE PROCEDURE REJUNTE_SA.BI_migrar_cliente AS 
+CREATE PROCEDURE REJUNTE_SA.migrar_BI_cliente AS 
 BEGIN 
-SELECT  
-c.id, 
-c.dni,
-c.nombre,
-c.apellido,
-r.id AS 'Id rango etario',
-c.direccion,
-c.id_datos_contacto,
-c.id_localidad
-FROM REJUNTE_SA.Cliente c
-JOIN REJUNTE_SA.BI_rango_etario r
-ON (YEAR(GETDATE()) - YEAR(c.fecha_nacimiento)) BETWEEN r.edad_minima AND r.edad_maxima
-ORDER BY c.id
+INSERT INTO REJUNTE_SA.BI_cliente (id, dni, nombre, apellido, id_rango_etario, direccion, id_datos_contacto, id_ubicacion)
+    SELECT  
+        c.id, 
+        c.dni,
+        c.nombre,
+        c.apellido,
+        r.id AS 'Id rango etario',
+        c.direccion,
+        c.id_datos_contacto,
+        c.id_localidad
+    FROM REJUNTE_SA.Cliente c
+    JOIN REJUNTE_SA.BI_rango_etario r
+    ON (YEAR(GETDATE()) - YEAR(c.fecha_nacimiento)) BETWEEN r.edad_minima AND r.edad_maxima
+    ORDER BY c.id
 END 
 
 -- Create Views
