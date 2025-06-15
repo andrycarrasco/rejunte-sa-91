@@ -331,11 +331,19 @@ INSERT INTO REJUNTE_SA.BI_cliente (id, dni, nombre, apellido, id_rango_etario, d
 END 
 
 GO
-CREATE PROCEDURE REJUNTE_SA.migrar_bi_pedido
+CREATE PROCEDURE REJUNTE_SA.migrar_BI_pedido
 AS 
 BEGIN 
-INSERT INTO REJUNTE_SA.BI_pedido(id, id_sucursal, id_cliente, id_tiempo, id_turno_venta, total, id_estado_pedido)
-
+    INSERT INTO REJUNTE_SA.BI_pedido(id, id_sucursal, id_cliente, id_tiempo, id_turno_venta, total, id_estado_pedido)
+    SELECT 
+        p.id,
+        p.id_sucursal,
+        p.id_cliente,
+        REJUNTE_SA.obtener_id_tiempo(p.fecha),
+        REJUNTE_SA.obtener_id_turno(p.fecha),
+        p.total,
+        p.id_estado_pedido
+    FROM REJUNTE_SA.Pedido p
 END 
 -- Create Views
 CREATE VIEW REJUNTE_SA.BI_ingresos AS
@@ -372,3 +380,5 @@ GO
 exec REJUNTE_SA.migrar_bi_tipo_material
 GO 
 exec REJUNTE_SA.migrar_BI_cliente
+GO
+exec REJUNTE_SA.migrar_BI_pedido
