@@ -29,7 +29,7 @@ Para correr el archivo **.puml**, deben tener instalado:
 - [X] BI_compra
 - [X] BI_sucursal
 - [X] BI_envio
-- [ ] Bi_cliente
+- [x] Bi_cliente
 
 
 ### Creacion de Procedures BI
