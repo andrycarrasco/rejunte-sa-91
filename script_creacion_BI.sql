@@ -94,18 +94,6 @@ CREATE TABLE REJUNTE_SA.BI_cliente (
     dni BIGINT UNIQUE,
     nombre NVARCHAR(255),
     apellido NVARCHAR(255),
-    id_tiempo_nacimiento BIGINT,
-    direccion NVARCHAR(255),
-    id_datos_contacto BIGINT,
-    id_ubicacion BIGINT
-)
-
-GO
-CREATE TABLE REJUNTE_SA.BI_cliente (
-    id BIGINT PRIMARY KEY,
-    dni BIGINT UNIQUE,
-    nombre NVARCHAR(255),
-    apellido NVARCHAR(255),
     id_rango_etario BIGINT,
     direccion NVARCHAR(255),
     id_datos_contacto BIGINT,
