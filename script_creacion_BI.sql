@@ -412,7 +412,41 @@ GROUP BY s.id, t.anio, t.mes, tv.id, tv.horario_inicio, tv.horario_fin
 
 GO -- 5
 CREATE VIEW REJUNTE_SA.BI_conversion_de_pedidos AS
-    SELECT 1 as test
+SELECT
+    p.id_sucursal,
+    t.anio,
+    t.cuatrimestre,
+    ep.descripcion AS 'Estado pedido',
+    CAST (
+        (COUNT(*) * 100.00) / (totales.total_pedidos) AS decimal(18, 2)
+    ) AS 'Porcentaje de pedidos sobre los pedidos hechos en el periodo'
+FROM
+    REJUNTE_SA.BI_pedido p
+    JOIN REJUNTE_SA.BI_tiempo t ON p.id_tiempo = t.id
+    JOIN REJUNTE_SA.BI_estado_pedido ep ON p.id_estado_pedido = ep.id
+    JOIN (
+        SELECT
+            p.id_sucursal,
+            t.anio,
+            t.cuatrimestre,
+            COUNT(*) AS total_pedidos
+        FROM
+            REJUNTE_SA.BI_pedido p
+            JOIN REJUNTE_SA.BI_tiempo t ON p.id_tiempo = t.id
+        GROUP BY
+            p.id_sucursal,
+            t.anio,
+            t.cuatrimestre
+    ) totales ON p.id_sucursal = totales.id_sucursal
+    AND t.anio = totales.anio
+    AND t.cuatrimestre = totales.cuatrimestre
+GROUP BY
+    p.id_sucursal,
+    t.anio,
+    t.cuatrimestre,
+    ep.id,
+    ep.descripcion,
+    totales.total_pedidos
 
 GO -- 6
 CREATE VIEW REJUNTE_SA.BI_tiempo_promedio_de_fabricacion AS
@@ -420,7 +454,16 @@ CREATE VIEW REJUNTE_SA.BI_tiempo_promedio_de_fabricacion AS
 
 GO -- 7
 CREATE VIEW REJUNTE_SA.BI_promedio_de_compras AS
-    SELECT 1 as test
+SELECT
+    t.anio,
+    t.mes,
+    CAST(SUM(c.total) / COUNT(*) AS decimal(18, 2)) AS 'Promedio de compras por mes'
+FROM
+    REJUNTE_SA.BI_compra c
+    JOIN REJUNTE_SA.BI_tiempo t ON c.id_tiempo = t.id
+GROUP BY
+    t.anio,
+    t.mes
 
 GO -- 8
 CREATE VIEW REJUNTE_SA.BI_compras_por_tipo_de_material AS
