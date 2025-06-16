@@ -2,10 +2,10 @@
 
 -- Create Tables
 GO
-CREATE TABLE REJUNTE_SA.BI_ubicacion(
-    id_localidad BIGINT,
-    nombre NVARCHAR(255),
-    PRIMARY KEY (id_localidad)
+CREATE TABLE REJUNTE_SA.BI_ubicacion (
+    id_localidad BIGINT PRIMARY KEY,
+    nombre_localidad NVARCHAR(255),
+    nombre_provincia NVARCHAR(255)
 )
 
 GO
@@ -88,6 +88,29 @@ CREATE TABLE REJUNTE_SA.BI_modelo(
     precio DECIMAL(18, 2)
 )
 
+GO
+CREATE TABLE REJUNTE_SA.BI_cliente (
+    id BIGINT PRIMARY KEY,
+    dni BIGINT UNIQUE,
+    nombre NVARCHAR(255),
+    apellido NVARCHAR(255),
+    id_rango_etario BIGINT,
+    direccion NVARCHAR(255),
+    id_datos_contacto BIGINT,
+    id_ubicacion BIGINT
+)
+    
+GO
+CREATE TABLE REJUNTE_SA.BI_pedido (
+    id decimal(18,0) PRIMARY KEY,
+    id_sucursal BIGINT,
+    id_cliente BIGINT,
+    id_tiempo BIGINT,
+    id_turno_venta BIGINT,
+    total decimal(18,2),
+    id_estado_pedido BIGINT
+)
+    
 --utils
 GO 
 CREATE FUNCTION REJUNTE_SA.obtenerCuatrimestre(@fecha DATETIME2(6))
@@ -144,16 +167,19 @@ END
 
 -- Create Procedures migracion
 GO
-CREATE PROCEDURE REJUNTE_SA.migrar_bi_ubicacion
-AS
-BEGIN
-    INSERT INTO REJUNTE_SA.BI_UBICACION(id_localidad, nombre)
-    SELECT
-        L.id,
-        L.nombre
-    from REJUNTE_SA.Localidad L;
+CREATE PROCEDURE REJUNTE_SA.migrar_bi_ubicacion 
+AS 
+BEGIN 
+    INSERT INTO REJUNTE_SA.BI_ubicacion (id_localidad, nombre_localidad, nombre_provincia)
+    SELECT 
+        l.id, 
+        l.nombre, 
+        p.nombre 
+        FROM REJUNTE_SA.Localidad l
+    INNER JOIN REJUNTE_SA.Provincia p
+        ON p.id = l.id_provincia
 END
-
+    
 GO
 CREATE PROCEDURE REJUNTE_SA.migrar_bi_turno_venta AS
 BEGIN 
@@ -190,11 +216,11 @@ END
 GO
 CREATE PROCEDURE REJUNTE_SA.migrar_bi_rango_etario AS
 BEGIN 
-    INSERT INTO REJUNTE_SA.BI_rango_etario(edad_minima, edad_maxima) VALUES
-      (0,25)
-      ,(25,35)
-      ,(35,50)
-      ,(50,150)
+INSERT INTO REJUNTE_SA.BI_rango_etario(edad_minima, edad_maxima) VALUES
+  (0,24)
+  ,(25,35)
+  ,(36,50)
+  ,(51,150)
 END 
 
 GO
@@ -286,6 +312,39 @@ BEGIN
 END
 
 
+CREATE PROCEDURE REJUNTE_SA.migrar_BI_cliente AS 
+BEGIN 
+INSERT INTO REJUNTE_SA.BI_cliente (id, dni, nombre, apellido, id_rango_etario, direccion, id_datos_contacto, id_ubicacion)
+    SELECT  
+        c.id, 
+        c.dni,
+        c.nombre,
+        c.apellido,
+        r.id AS 'Id rango etario',
+        c.direccion,
+        c.id_datos_contacto,
+        c.id_localidad
+    FROM REJUNTE_SA.Cliente c
+    JOIN REJUNTE_SA.BI_rango_etario r
+    ON (YEAR(GETDATE()) - YEAR(c.fecha_nacimiento)) BETWEEN r.edad_minima AND r.edad_maxima
+    ORDER BY c.id
+END 
+
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_BI_pedido
+AS 
+BEGIN 
+    INSERT INTO REJUNTE_SA.BI_pedido(id, id_sucursal, id_cliente, id_tiempo, id_turno_venta, total, id_estado_pedido)
+    SELECT 
+        p.id,
+        p.id_sucursal,
+        p.id_cliente,
+        REJUNTE_SA.obtener_id_tiempo(p.fecha),
+        REJUNTE_SA.obtener_id_turno(p.fecha),
+        p.total,
+        p.id_estado_pedido
+    FROM REJUNTE_SA.Pedido p
+END 
 -- Create Views
 CREATE VIEW REJUNTE_SA.BI_ingresos AS
 SELECT t.anio AS 'Anio', t.mes AS 'Mes', s.id AS 'Sucursal ', SUM(f.total - c.total) AS 'Ganancia'
@@ -298,6 +357,23 @@ INNER JOIN REJUNTE_SA.BI_compra c
 ON c.id_sucursal = s.id
 GROUP BY T.anio, t.mes, s.id
 
+CREATE VIEW REJUNTE_SA.BI_volumen_pedidos AS 
+SELECT 
+s.id as 'sucursal',
+t.anio,
+t.mes,
+tv.horario_inicio AS 'horario inicio turno',
+tv.horario_fin AS 'horario fin turno',
+COUNT(DISTINCT p.id) AS 'Numero de pedidos en el mes'
+FROM REJUNTE_SA.BI_sucursal s
+INNER JOIN REJUNTE_SA.BI_pedido p 
+ON p.id_sucursal = s.id
+INNER JOIN REJUNTE_SA.BI_tiempo t 
+on t.id = p.id_tiempo
+INNER JOIN REJUNTE_SA.BI_turno_venta tv 
+ON tv.id = p.id_turno_venta
+GROUP BY s.id, t.anio, t.mes, tv.id, tv.horario_inicio, tv.horario_fin
+    
 -- Exec Procedures
 GO
 exec REJUNTE_SA.migrar_bi_ubicacion
@@ -319,3 +395,7 @@ GO
 exec REJUNTE_SA.migrar_bi_envio
 GO
 exec REJUNTE_SA.migrar_bi_tipo_material
+GO 
+exec REJUNTE_SA.migrar_BI_cliente
+GO
+exec REJUNTE_SA.migrar_BI_pedido
