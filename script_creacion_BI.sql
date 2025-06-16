@@ -1,5 +1,3 @@
--- TODO: Agregar scripts iniciales para limpiar la base
-
 -- Create Tables
 GO
 CREATE TABLE REJUNTE_SA.BI_ubicacion (
@@ -311,10 +309,10 @@ BEGIN
     from REJUNTE_SA.Envio E
 END
 
-
+GO
 CREATE PROCEDURE REJUNTE_SA.migrar_bi_cliente AS
 BEGIN
-INSERT INTO REJUNTE_SA.BI_cliente (id, dni, nombre, apellido, id_rango_etario, direccion, id_datos_contacto, id_ubicacion)
+    INSERT INTO REJUNTE_SA.BI_cliente (id, dni, nombre, apellido, id_rango_etario, direccion, id_datos_contacto, id_ubicacion)
     SELECT
         c.id,
         c.dni,
@@ -326,13 +324,12 @@ INSERT INTO REJUNTE_SA.BI_cliente (id, dni, nombre, apellido, id_rango_etario, d
         c.id_localidad
     FROM REJUNTE_SA.Cliente c
     JOIN REJUNTE_SA.BI_rango_etario r
-    ON (YEAR(GETDATE()) - YEAR(c.fecha_nacimiento)) BETWEEN r.edad_minima AND r.edad_maxima
+        ON (YEAR(GETDATE()) - YEAR(c.fecha_nacimiento)) BETWEEN r.edad_minima AND r.edad_maxima
     ORDER BY c.id
 END
 
 GO
-CREATE PROCEDURE REJUNTE_SA.migrar_bi_pedido
-AS
+CREATE PROCEDURE REJUNTE_SA.migrar_bi_pedido AS
 BEGIN
     INSERT INTO REJUNTE_SA.BI_pedido(id, id_sucursal, id_cliente, id_tiempo, id_turno_venta, total, id_estado_pedido)
     SELECT
@@ -348,41 +345,33 @@ END
 -- Create Views
 
 GO -- 1
-CREATE VIEW REJUNTE_SA.BI_ingresos AS
-SELECT t.anio AS 'Anio', t.mes AS 'Mes', s.id AS 'Sucursal ', SUM(f.total - c.total) AS 'Ganancia'
-FROM REJUNTE_SA.BI_tiempo t
-INNER JOIN REJUNTE_SA.BI_factura f
-ON f.id_tiempo = t.id
-INNER JOIN REJUNTE_SA.BI_sucursal s
-ON f.id_sucursal = s.id
-INNER JOIN REJUNTE_SA.BI_compra c
-ON c.id_sucursal = s.id
-GROUP BY T.anio, t.mes, s.id
-
-GO -- 4
-CREATE VIEW REJUNTE_SA.BI_volumen_pedidos AS
+CREATE VIEW REJUNTE_SA.BI_ganancias AS
 SELECT
-s.id as 'sucursal',
-t.anio,
-t.mes,
-tv.horario_inicio AS 'horario inicio turno',
-tv.horario_fin AS 'horario fin turno',
-COUNT(DISTINCT p.id) AS 'Numero de pedidos en el mes'
-FROM REJUNTE_SA.BI_sucursal s
-INNER JOIN REJUNTE_SA.BI_pedido p
-ON p.id_sucursal = s.id
-INNER JOIN REJUNTE_SA.BI_tiempo t
-on t.id = p.id_tiempo
-INNER JOIN REJUNTE_SA.BI_turno_venta tv
-ON tv.id = p.id_turno_venta
-GROUP BY s.id, t.anio, t.mes, tv.id, tv.horario_inicio, tv.horario_fin
+    suc.id AS Sucursal,
+    tiempo.anio as Anio,
+    tiempo.mes as MES,
+    ISNULL(fact.total_facturas, 0) - ISNULL(comp.total_compras, 0) AS Ganancia
+FROM REJUNTE_SA.BI_sucursal suc
+CROSS JOIN REJUNTE_SA.BI_tiempo tiempo
+LEFT JOIN (
+    SELECT id_sucursal, id_tiempo, SUM(total) AS total_facturas
+    FROM REJUNTE_SA.BI_factura
+    GROUP BY id_sucursal, id_tiempo
+) fact
+    ON fact.id_sucursal = suc.id AND fact.id_tiempo = tiempo.id
+LEFT JOIN (
+    SELECT id_sucursal, id_tiempo, SUM(total) AS total_compras
+    FROM REJUNTE_SA.BI_compra
+    GROUP BY id_sucursal, id_tiempo
+) comp
+    ON comp.id_sucursal = suc.id AND comp.id_tiempo = tiempo.id
 
 GO -- 2
 CREATE VIEW REJUNTE_SA.BI_factura_promedio_mensual AS
 SELECT
     Bt.anio AS anio,
     Bt.cuatrimestre AS cuatrimestre,
-    Bu.nombre AS Localidad,
+    Bu.nombre_provincia AS provincia,
     COUNT(*) AS cantidad_facturas,
     SUM(bf.total) AS total_importe,
     SUM(bf.total) * 1.0 / COUNT(*) AS factura_promedio_mensual
@@ -397,13 +386,53 @@ INNER JOIN
 GROUP BY
     Bt.anio,
     Bt.cuatrimestre,
-    Bu.nombre;
+    Bu.nombre_provincia;
 
-GO
-select *
-from REJUNTE_SA.BI_factura_promedio_mensual f
-order by f.anio, f.cuatrimestre
+GO -- 3
+CREATE VIEW REJUNTE_SA.BI_rendimiento_de_modelos AS
+    SELECT 1 as test
 
+GO -- 4
+CREATE VIEW REJUNTE_SA.BI_volumen_pedidos AS
+SELECT
+    s.id as 'sucursal',
+    t.anio,
+    t.mes,
+    tv.horario_inicio AS 'horario inicio turno',
+    tv.horario_fin AS 'horario fin turno',
+    COUNT(DISTINCT p.id) AS 'Numero de pedidos en el mes'
+FROM REJUNTE_SA.BI_sucursal s
+INNER JOIN REJUNTE_SA.BI_pedido p
+    ON p.id_sucursal = s.id
+INNER JOIN REJUNTE_SA.BI_tiempo t
+    ON t.id = p.id_tiempo
+INNER JOIN REJUNTE_SA.BI_turno_venta tv
+    ON tv.id = p.id_turno_venta
+GROUP BY s.id, t.anio, t.mes, tv.id, tv.horario_inicio, tv.horario_fin
+
+GO -- 5
+CREATE VIEW REJUNTE_SA.BI_conversion_de_pedidos AS
+    SELECT 1 as test
+
+GO -- 6
+CREATE VIEW REJUNTE_SA.BI_tiempo_promedio_de_fabricacion AS
+    SELECT 1 as test
+
+GO -- 7
+CREATE VIEW REJUNTE_SA.BI_promedio_de_compras AS
+    SELECT 1 as test
+
+GO -- 8
+CREATE VIEW REJUNTE_SA.BI_compras_por_tipo_de_material AS
+    SELECT 1 as test
+
+GO -- 9
+CREATE VIEW REJUNTE_SA.BI_porcentaje_de_cumplimiento_de_envios AS
+    SELECT 1 as test
+
+GO -- 10
+CREATE VIEW REJUNTE_SA.BI_localidades_que_pagan_mayor_costo_de_envio AS
+    SELECT 1 as test
 
 
 -- Exec Procedures
@@ -411,6 +440,8 @@ GO
 exec REJUNTE_SA.migrar_bi_ubicacion
 GO
 exec REJUNTE_SA.migrar_bi_tiempo
+GO
+exec REJUNTE_SA.migrar_bi_turno_venta
 GO
 exec REJUNTE_SA.migrar_bi_rango_etario
 GO
@@ -431,3 +462,15 @@ GO
 exec REJUNTE_SA.migrar_bi_cliente
 GO
 exec REJUNTE_SA.migrar_bi_pedido
+
+
+-- SELECTs VIEWs
+
+-- select *
+-- from REJUNTE_SA.BI_ganancias Bg;
+--
+-- select *
+-- from REJUNTE_SA.BI_factura_promedio_mensual Bfpm;
+--
+-- select *
+-- from REJUNTE_SA.BI_volumen_pedidos Bvp;
