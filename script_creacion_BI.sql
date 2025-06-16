@@ -287,6 +287,8 @@ END
 
 
 -- Create Views
+
+GO -- 1
 CREATE VIEW REJUNTE_SA.BI_ingresos AS
 SELECT t.anio AS 'Anio', t.mes AS 'Mes', s.id AS 'Sucursal ', SUM(f.total - c.total) AS 'Ganancia'
 FROM REJUNTE_SA.BI_tiempo t
@@ -297,6 +299,35 @@ ON f.id_sucursal = s.id
 INNER JOIN REJUNTE_SA.BI_compra c
 ON c.id_sucursal = s.id
 GROUP BY T.anio, t.mes, s.id
+
+GO -- 2
+CREATE VIEW REJUNTE_SA.BI_factura_promedio_mensual AS
+SELECT
+    Bt.anio AS anio,
+    Bt.cuatrimestre AS cuatrimestre,
+    Bu.nombre AS Localidad,
+    COUNT(*) AS cantidad_facturas,
+    SUM(bf.total) AS total_importe,
+    SUM(bf.total) * 1.0 / COUNT(*) AS factura_promedio_mensual
+FROM
+    REJUNTE_SA.BI_factura Bf
+INNER JOIN
+    REJUNTE_SA.BI_sucursal Bs ON bs.id = bf.id_sucursal
+INNER JOIN
+    REJUNTE_SA.BI_ubicacion Bu ON BU.id_localidad = BS.id_ubicacion
+INNER JOIN
+    REJUNTE_SA.BI_tiempo Bt ON Bt.id = BF.id_tiempo
+GROUP BY
+    Bt.anio,
+    Bt.cuatrimestre,
+    Bu.nombre;
+
+GO
+select *
+from REJUNTE_SA.BI_factura_promedio_mensual f
+order by f.anio, f.cuatrimestre
+
+
 
 -- Exec Procedures
 GO
