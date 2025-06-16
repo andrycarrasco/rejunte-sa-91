@@ -466,11 +466,11 @@ exec REJUNTE_SA.migrar_bi_pedido
 
 -- SELECTs VIEWs
 
-select *
-from REJUNTE_SA.BI_ganancias Bg;
-
-select *
-from REJUNTE_SA.BI_factura_promedio_mensual Bfpm;
-
-select *
-from REJUNTE_SA.BI_volumen_pedidos Bvp;
+-- select *
+-- from REJUNTE_SA.BI_ganancias Bg;
+--
+-- select *
+-- from REJUNTE_SA.BI_factura_promedio_mensual Bfpm;
+--
+-- select *
+-- from REJUNTE_SA.BI_volumen_pedidos Bvp;
