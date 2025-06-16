@@ -2,10 +2,10 @@
 
 -- Create Tables
 GO
-CREATE TABLE REJUNTE_SA.BI_ubicacion(
-    id_localidad BIGINT,
-    nombre NVARCHAR(255),
-    PRIMARY KEY (id_localidad)
+CREATE TABLE REJUNTE_SA.BI_ubicacion (
+    id_localidad BIGINT PRIMARY KEY,
+    nombre_localidad NVARCHAR(255),
+    nombre_provincia NVARCHAR(255)
 )
 
 GO
@@ -88,6 +88,29 @@ CREATE TABLE REJUNTE_SA.BI_modelo(
     precio DECIMAL(18, 2)
 )
 
+GO
+CREATE TABLE REJUNTE_SA.BI_cliente (
+    id BIGINT PRIMARY KEY,
+    dni BIGINT UNIQUE,
+    nombre NVARCHAR(255),
+    apellido NVARCHAR(255),
+    id_rango_etario BIGINT,
+    direccion NVARCHAR(255),
+    id_datos_contacto BIGINT,
+    id_ubicacion BIGINT
+)
+
+GO
+CREATE TABLE REJUNTE_SA.BI_pedido (
+    id decimal(18,0) PRIMARY KEY,
+    id_sucursal BIGINT,
+    id_cliente BIGINT,
+    id_tiempo BIGINT,
+    id_turno_venta BIGINT,
+    total decimal(18,2),
+    id_estado_pedido BIGINT
+)
+
 --utils
 GO 
 CREATE FUNCTION REJUNTE_SA.obtenerCuatrimestre(@fecha DATETIME2(6))
@@ -147,11 +170,14 @@ GO
 CREATE PROCEDURE REJUNTE_SA.migrar_bi_ubicacion
 AS
 BEGIN
-    INSERT INTO REJUNTE_SA.BI_UBICACION(id_localidad, nombre)
+    INSERT INTO REJUNTE_SA.BI_ubicacion (id_localidad, nombre_localidad, nombre_provincia)
     SELECT
-        L.id,
-        L.nombre
-    from REJUNTE_SA.Localidad L;
+        l.id,
+        l.nombre,
+        p.nombre
+        FROM REJUNTE_SA.Localidad l
+    INNER JOIN REJUNTE_SA.Provincia p
+        ON p.id = l.id_provincia
 END
 
 GO
@@ -190,11 +216,11 @@ END
 GO
 CREATE PROCEDURE REJUNTE_SA.migrar_bi_rango_etario AS
 BEGIN 
-    INSERT INTO REJUNTE_SA.BI_rango_etario(edad_minima, edad_maxima) VALUES
-      (0,25)
-      ,(25,35)
-      ,(35,50)
-      ,(50,150)
+INSERT INTO REJUNTE_SA.BI_rango_etario(edad_minima, edad_maxima) VALUES
+  (0,24)
+  ,(25,35)
+  ,(36,50)
+  ,(51,150)
 END 
 
 GO
@@ -286,7 +312,42 @@ BEGIN
 END
 
 
+CREATE PROCEDURE REJUNTE_SA.migrar_bi_cliente AS
+BEGIN
+INSERT INTO REJUNTE_SA.BI_cliente (id, dni, nombre, apellido, id_rango_etario, direccion, id_datos_contacto, id_ubicacion)
+    SELECT
+        c.id,
+        c.dni,
+        c.nombre,
+        c.apellido,
+        r.id AS 'Id rango etario',
+        c.direccion,
+        c.id_datos_contacto,
+        c.id_localidad
+    FROM REJUNTE_SA.Cliente c
+    JOIN REJUNTE_SA.BI_rango_etario r
+    ON (YEAR(GETDATE()) - YEAR(c.fecha_nacimiento)) BETWEEN r.edad_minima AND r.edad_maxima
+    ORDER BY c.id
+END
+
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_bi_pedido
+AS
+BEGIN
+    INSERT INTO REJUNTE_SA.BI_pedido(id, id_sucursal, id_cliente, id_tiempo, id_turno_venta, total, id_estado_pedido)
+    SELECT
+        p.id,
+        p.id_sucursal,
+        p.id_cliente,
+        REJUNTE_SA.obtener_id_tiempo(p.fecha),
+        REJUNTE_SA.obtener_id_turno(p.fecha),
+        p.total,
+        p.id_estado_pedido
+    FROM REJUNTE_SA.Pedido p
+END
 -- Create Views
+
+GO -- 1
 CREATE VIEW REJUNTE_SA.BI_ingresos AS
 SELECT t.anio AS 'Anio', t.mes AS 'Mes', s.id AS 'Sucursal ', SUM(f.total - c.total) AS 'Ganancia'
 FROM REJUNTE_SA.BI_tiempo t
@@ -297,6 +358,53 @@ ON f.id_sucursal = s.id
 INNER JOIN REJUNTE_SA.BI_compra c
 ON c.id_sucursal = s.id
 GROUP BY T.anio, t.mes, s.id
+
+GO -- 4
+CREATE VIEW REJUNTE_SA.BI_volumen_pedidos AS
+SELECT
+s.id as 'sucursal',
+t.anio,
+t.mes,
+tv.horario_inicio AS 'horario inicio turno',
+tv.horario_fin AS 'horario fin turno',
+COUNT(DISTINCT p.id) AS 'Numero de pedidos en el mes'
+FROM REJUNTE_SA.BI_sucursal s
+INNER JOIN REJUNTE_SA.BI_pedido p
+ON p.id_sucursal = s.id
+INNER JOIN REJUNTE_SA.BI_tiempo t
+on t.id = p.id_tiempo
+INNER JOIN REJUNTE_SA.BI_turno_venta tv
+ON tv.id = p.id_turno_venta
+GROUP BY s.id, t.anio, t.mes, tv.id, tv.horario_inicio, tv.horario_fin
+
+GO -- 2
+CREATE VIEW REJUNTE_SA.BI_factura_promedio_mensual AS
+SELECT
+    Bt.anio AS anio,
+    Bt.cuatrimestre AS cuatrimestre,
+    Bu.nombre AS Localidad,
+    COUNT(*) AS cantidad_facturas,
+    SUM(bf.total) AS total_importe,
+    SUM(bf.total) * 1.0 / COUNT(*) AS factura_promedio_mensual
+FROM
+    REJUNTE_SA.BI_factura Bf
+INNER JOIN
+    REJUNTE_SA.BI_sucursal Bs ON bs.id = bf.id_sucursal
+INNER JOIN
+    REJUNTE_SA.BI_ubicacion Bu ON BU.id_localidad = BS.id_ubicacion
+INNER JOIN
+    REJUNTE_SA.BI_tiempo Bt ON Bt.id = BF.id_tiempo
+GROUP BY
+    Bt.anio,
+    Bt.cuatrimestre,
+    Bu.nombre;
+
+GO
+select *
+from REJUNTE_SA.BI_factura_promedio_mensual f
+order by f.anio, f.cuatrimestre
+
+
 
 -- Exec Procedures
 GO
@@ -319,3 +427,7 @@ GO
 exec REJUNTE_SA.migrar_bi_envio
 GO
 exec REJUNTE_SA.migrar_bi_tipo_material
+GO
+exec REJUNTE_SA.migrar_bi_cliente
+GO
+exec REJUNTE_SA.migrar_bi_pedido
