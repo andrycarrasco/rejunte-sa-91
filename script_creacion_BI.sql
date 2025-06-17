@@ -5,6 +5,7 @@ CREATE TABLE REJUNTE_SA.BI_factura (
     id_tiempo BIGINT,
     id_cliente BIGINT,
     id_turno_venta BIGINT,
+    cantidad BIGINT,
     total decimal (38,2)
 )
 
@@ -15,6 +16,8 @@ CREATE TABLE REJUNTE_SA.BI_pedido (
     id_tiempo BIGINT,
     id_estado_pedido BIGINT,
     id_modelo BIGINT,
+    id_turno_venta BIGINT,
+    cantidad BIGINT,
     total decimal(18,2),
 )
 
@@ -23,6 +26,7 @@ CREATE TABLE REJUNTE_SA.BI_compra (
     id_sucursal BIGINT,
     id_material BIGINT,
     id_tiempo BIGINT,
+    cantidad BIGINT,
     total decimal(38,2)
 )
 
@@ -33,6 +37,7 @@ CREATE TABLE REJUNTE_SA.BI_envio(
     fecha_programada DATETIME2(6),
     fecha_entrega DATETIME2(6),
     es_fecha_entrega BIT,
+    cantidad BIGINT,
     importe_traslado DECIMAL(18, 2),
     importe_subida DECIMAL(18, 2),
     importe_total DECIMAL(18, 2)
@@ -132,6 +137,8 @@ ALTER TABLE REJUNTE_SA.BI_pedido
 ADD FOREIGN KEY (id_estado_pedido) REFERENCES REJUNTE_SA.BI_estado_pedido(id);
 ALTER TABLE REJUNTE_SA.BI_pedido
 ADD FOREIGN KEY (id_modelo) REFERENCES REJUNTE_SA.BI_modelo(id);
+ALTER TABLE REJUNTE_SA.BI_pedido
+ADD FOREIGN KEY (id_turno_venta) REFERENCES REJUNTE_SA.BI_turno_venta(id);
 
 -- COMPRA FKs
 ALTER TABLE REJUNTE_SA.BI_compra
@@ -157,7 +164,7 @@ ADD FOREIGN KEY (id_rango_etario) REFERENCES REJUNTE_SA.BI_rango_etario(id);
 
 -- CREATE FUNCTIONS
 GO 
-CREATE FUNCTION REJUNTE_SA.obtenerCuatrimestre(@fecha DATETIME2(6))
+CREATE FUNCTION REJUNTE_SA.obtener_cuatrimestre(@fecha DATETIME2(6))
 RETURNS INT
 AS
 BEGIN
@@ -189,7 +196,7 @@ BEGIN
     SET @id_tiempo = (
       SELECT id
       FROM REJUNTE_SA.BI_tiempo
-      WHERE anio = YEAR(@fecha) AND mes = MONTH(@fecha) AND cuatrimestre = REJUNTE_SA.obtenerCuatrimestre(@fecha)
+      WHERE anio = YEAR(@fecha) AND mes = MONTH(@fecha) AND cuatrimestre = REJUNTE_SA.obtener_cuatrimestre(@fecha)
     )
     RETURN @id_tiempo
 END 
@@ -227,31 +234,34 @@ END
 GO
 CREATE PROCEDURE REJUNTE_SA.migrar_bi_factura AS
 BEGIN
-    INSERT INTO REJUNTE_SA.BI_factura (id_sucursal, id_cliente, id_tiempo, id_turno_venta, total)
+    INSERT INTO REJUNTE_SA.BI_factura (id_sucursal, id_cliente, id_tiempo, id_turno_venta, cantidad, total)
     SELECT
-        id_sucursal,
-        id_cliente,
-        REJUNTE_SA.obtener_id_tiempo(fecha) AS 'id_tiempo',
-        REJUNTE_SA.obtener_id_turno(fecha) AS 'id_turno_venta',
-        sum(total) as total
-    FROM REJUNTE_SA.Factura
+        F.id_sucursal,
+        F.id_cliente,
+        REJUNTE_SA.obtener_id_tiempo(F.fecha) AS 'id_tiempo',
+        REJUNTE_SA.obtener_id_turno(F.fecha) AS 'id_turno_venta',
+        count(distinct F.id) as cantidad,
+        sum(F.total) as total
+    FROM REJUNTE_SA.Factura F
     group by
-        id_sucursal,
-        id_cliente,
-        REJUNTE_SA.obtener_id_tiempo(fecha),
-        REJUNTE_SA.obtener_id_turno(fecha)
+        F.id_sucursal,
+        F.id_cliente,
+        REJUNTE_SA.obtener_id_tiempo(F.fecha),
+        REJUNTE_SA.obtener_id_turno(F.fecha)
 END
 
 GO
 CREATE PROCEDURE REJUNTE_SA.migrar_bi_pedido AS
 BEGIN
-    INSERT INTO REJUNTE_SA.BI_pedido(id_sucursal, id_cliente, id_tiempo, id_estado_pedido, id_modelo, total)
+    INSERT INTO REJUNTE_SA.BI_pedido(id_sucursal, id_cliente, id_tiempo, id_estado_pedido, id_modelo, id_turno_venta, cantidad, total)
     SELECT
         p.id_sucursal,
         p.id_cliente,
         REJUNTE_SA.obtener_id_tiempo(p.fecha) as id_tiempo,
         p.id_estado_pedido,
         s.id_modelo,
+        REJUNTE_SA.obtener_id_turno(p.fecha) as id_turno_venta,
+        count(p.id) as cantidad,
         sum(p.total) as total
     FROM REJUNTE_SA.Pedido p
     inner join REJUNTE_SA.Detalle_Pedido DP on p.id = DP.id_pedido
@@ -261,17 +271,19 @@ BEGIN
         id_cliente,
         REJUNTE_SA.obtener_id_tiempo(p.fecha),
         p.id_estado_pedido,
-        s.id_modelo
+        s.id_modelo,
+        REJUNTE_SA.obtener_id_turno(p.fecha)
 END
 
 GO
 CREATE PROCEDURE REJUNTE_SA.migrar_bi_compra AS
 BEGIN
-    INSERT INTO REJUNTE_SA.BI_compra (id_sucursal, id_material, id_tiempo, total)
+    INSERT INTO REJUNTE_SA.BI_compra (id_sucursal, id_material, id_tiempo, cantidad, total)
     SELECT
         c.id_sucursal,
         dc.id_material,
         REJUNTE_SA.obtener_id_tiempo(fecha) AS 'id_tiempo',
+        count(distinct c.id) as cantidad,
         sum(total) as total
     FROM REJUNTE_SA.Compra c
     inner join REJUNTE_SA.Detalle_Compra DC on c.id = DC.id_compra
@@ -281,19 +293,25 @@ END
 GO
 CREATE PROCEDURE REJUNTE_SA.migrar_bi_envio AS
 BEGIN
-   INSERT INTO REJUNTE_SA.BI_envio(id_cliente, id_sucursal, fecha_programada, fecha_entrega, es_fecha_entrega, importe_traslado, importe_subida, importe_total)
+    INSERT INTO REJUNTE_SA.BI_envio(id_cliente, id_sucursal, fecha_programada, fecha_entrega, es_fecha_entrega, cantidad, importe_traslado, importe_subida, importe_total)
     select
         F.id_cliente,
         F.id_sucursal,
         E.fecha_programada,
         E.fecha_entrega,
         REJUNTE_SA.obtener_es_fecha_cumplida(E.fecha_programada, E.fecha_entrega) AS 'es_fecha_entrega',
+        count(E.id) as cantidad,
         sum(E.importe_traslado) as importe_traslado,
         sum(E.importe_subida) as importe_subida,
         sum(E.importe_total) as importe_total
     from REJUNTE_SA.Envio E
     inner join REJUNTE_SA.Factura F on F.id = e.id_factura
-    group by F.id_cliente, F.id_sucursal, E.fecha_programada, E.fecha_entrega, REJUNTE_SA.obtener_es_fecha_cumplida(E.fecha_programada, E.fecha_entrega)
+    group by
+        F.id_cliente,
+        F.id_sucursal,
+        E.fecha_programada,
+        E.fecha_entrega,
+        REJUNTE_SA.obtener_es_fecha_cumplida(E.fecha_programada, E.fecha_entrega)
 END
 
 
@@ -325,22 +343,22 @@ GO
 CREATE PROCEDURE REJUNTE_SA.migrar_bi_tiempo AS 
 BEGIN 
     INSERT INTO REJUNTE_SA.BI_tiempo (anio, mes, cuatrimestre)
-    SELECT DISTINCT YEAR(f.fecha), MONTH(f.fecha), REJUNTE_SA.obtenerCuatrimestre(f.fecha)
+    SELECT DISTINCT YEAR(f.fecha), MONTH(f.fecha), REJUNTE_SA.obtener_cuatrimestre(f.fecha)
     FROM REJUNTE_SA.Factura f
     UNION
-    SELECT DISTINCT YEAR(c.fecha), MONTH(c.fecha), REJUNTE_SA.obtenerCuatrimestre(c.fecha)
+    SELECT DISTINCT YEAR(c.fecha), MONTH(c.fecha), REJUNTE_SA.obtener_cuatrimestre(c.fecha)
     FROM REJUNTE_SA.Compra c
     UNION
-    SELECT DISTINCT YEAR(fecha), MONTH(fecha), REJUNTE_SA.obtenerCuatrimestre(fecha)
+    SELECT DISTINCT YEAR(fecha), MONTH(fecha), REJUNTE_SA.obtener_cuatrimestre(fecha)
     FROM REJUNTE_SA.Cancelacion_Pedido 
     UNION
-    SELECT DISTINCT YEAR(e.fecha_entrega), MONTH(e.fecha_entrega), REJUNTE_SA.obtenerCuatrimestre(e.fecha_entrega)
+    SELECT DISTINCT YEAR(e.fecha_entrega), MONTH(e.fecha_entrega), REJUNTE_SA.obtener_cuatrimestre(e.fecha_entrega)
     FROM REJUNTE_SA.Envio e
     UNION
-    SELECT DISTINCT YEAR(e.fecha_programada), MONTH(e.fecha_programada), REJUNTE_SA.obtenerCuatrimestre(e.fecha_programada)
+    SELECT DISTINCT YEAR(e.fecha_programada), MONTH(e.fecha_programada), REJUNTE_SA.obtener_cuatrimestre(e.fecha_programada)
     FROM REJUNTE_SA.Envio e
     UNION
-    SELECT DISTINCT YEAR(p.fecha), MONTH(p.fecha), REJUNTE_SA.obtenerCuatrimestre(p.fecha)
+    SELECT DISTINCT YEAR(p.fecha), MONTH(p.fecha), REJUNTE_SA.obtener_cuatrimestre(p.fecha)
     FROM REJUNTE_SA.Pedido p
     ORDER BY 1,2,3 desc
 END
@@ -449,7 +467,7 @@ INNER JOIN REJUNTE_SA.BI_tiempo Bt ON Bf.id_tiempo = Bt.id
 GROUP BY bt.anio, bt.cuatrimestre, bu.provincia
 
 GO -- 3
-ALTER VIEW REJUNTE_SA.BI_rendimiento_de_modelos AS
+CREATE VIEW REJUNTE_SA.BI_rendimiento_de_modelos AS
 WITH Rendimiento_Modelos AS (
     SELECT
         bt.anio,
@@ -481,23 +499,23 @@ SELECT
 FROM Rendimiento_Modelos RM
 WHERE RM.ranking <= 3
 
--- GO -- 4 con los cambios se rompio esto :(
--- CREATE VIEW REJUNTE_SA.BI_volumen_pedidos AS
--- SELECT
---     s.id as 'sucursal',
---     t.anio,
---     t.mes,
---     tv.horario_inicio AS 'horario inicio turno',
---     tv.horario_fin AS 'horario fin turno',
---     COUNT(DISTINCT p.id) AS 'Numero de pedidos en el mes'
--- FROM REJUNTE_SA.BI_sucursal s
--- INNER JOIN REJUNTE_SA.BI_pedido p
---     ON p.id_sucursal = s.id
--- INNER JOIN REJUNTE_SA.BI_tiempo t
---     ON t.id = p.id_tiempo
--- INNER JOIN REJUNTE_SA.BI_turno_venta tv
---     ON tv.id = p.id_turno_venta
--- GROUP BY s.id, t.anio, t.mes, tv.id, tv.horario_inicio, tv.horario_fin
+GO -- 4
+CREATE VIEW REJUNTE_SA.BI_volumen_pedidos AS
+SELECT
+    s.id as 'sucursal',
+    t.anio,
+    t.mes,
+    tv.horario_inicio AS 'horario inicio turno',
+    tv.horario_fin AS 'horario fin turno',
+    COUNT(DISTINCT p.cantidad) AS 'Numero de pedidos en el mes'
+FROM REJUNTE_SA.BI_sucursal s
+INNER JOIN REJUNTE_SA.BI_pedido p
+    ON p.id_sucursal = s.id
+INNER JOIN REJUNTE_SA.BI_tiempo t
+    ON t.id = p.id_tiempo
+INNER JOIN REJUNTE_SA.BI_turno_venta tv
+    ON tv.id = p.id_turno_venta
+GROUP BY s.id, t.anio, t.mes, tv.id, tv.horario_inicio, tv.horario_fin
 
 GO -- 5
 CREATE VIEW REJUNTE_SA.BI_conversion_de_pedidos AS
