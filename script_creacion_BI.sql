@@ -1,9 +1,81 @@
--- Create Tables
+-- CREATE FACTS TABLES
+GO
+CREATE TABLE REJUNTE_SA.BI_factura (
+    id_sucursal BIGINT,
+    id_tiempo BIGINT,
+    id_cliente BIGINT,
+    id_turno_venta BIGINT,
+    total decimal (38,2)
+)
+
+GO
+CREATE TABLE REJUNTE_SA.BI_pedido (
+    id_sucursal BIGINT,
+    id_cliente BIGINT,
+    id_tiempo BIGINT,
+    id_estado_pedido BIGINT,
+    id_modelo BIGINT,
+    total decimal(18,2),
+)
+
+GO
+CREATE TABLE REJUNTE_SA.BI_compra (
+    id_sucursal BIGINT,
+    id_material BIGINT,
+    id_tiempo BIGINT,
+    total decimal(38,2)
+)
+
+GO
+CREATE TABLE REJUNTE_SA.BI_envio(
+    id_cliente BIGINT,
+    id_sucursal BIGINT,
+    fecha_programada DATETIME2(6),
+    fecha_entrega DATETIME2(6),
+    es_fecha_entrega BIT,
+    importe_traslado DECIMAL(18, 2),
+    importe_subida DECIMAL(18, 2),
+    importe_total DECIMAL(18, 2)
+)
+
+
+-- CREATE DIMENSIONS TABLES
+GO
+CREATE TABLE REJUNTE_SA.BI_tiempo (
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    anio INT,
+    mes INT,
+    cuatrimestre INT
+)
+
 GO
 CREATE TABLE REJUNTE_SA.BI_ubicacion (
-    id_localidad BIGINT PRIMARY KEY,
-    nombre_localidad NVARCHAR(255),
-    nombre_provincia NVARCHAR(255)
+    id BIGINT PRIMARY KEY,
+    localidad NVARCHAR(255),
+    provincia NVARCHAR(255)
+)
+
+GO
+CREATE TABLE REJUNTE_SA.BI_sucursal (
+    id BIGINT PRIMARY KEY,
+    id_datos_contacto BIGINT,
+    id_ubicacion BIGINT,
+    direccion NVARCHAR(255)
+)
+
+GO
+CREATE TABLE REJUNTE_SA.BI_modelo(
+    id BIGINT PRIMARY KEY,
+    modelo NVARCHAR(255),
+    descripcion NVARCHAR(255),
+    precio DECIMAL(18, 2)
+)
+
+GO
+CREATE TABLE REJUNTE_SA.BI_rango_etario (
+  id BIGINT IDENTITY(1,1) PRIMARY KEY,
+  edad_minima INT,
+  edad_maxima INT
 )
 
 GO
@@ -14,76 +86,15 @@ CREATE TABLE REJUNTE_SA.BI_turno_venta (
 )
 
 GO
-CREATE TABLE REJUNTE_SA.BI_tiempo (
-    id BIGINT IDENTITY(1,1) PRIMARY KEY,
-    anio INT,
-    mes INT,
-    cuatrimestre INT
-)
-
-GO 
-CREATE TABLE REJUNTE_SA.BI_rango_etario (
-  id BIGINT IDENTITY(1,1) PRIMARY KEY,
-  edad_minima INT,
-  edad_maxima INT
-)
-    
-GO
 CREATE TABLE REJUNTE_SA.BI_estado_pedido (
     id BIGINT PRIMARY KEY,
     descripcion NVARCHAR(255)
 )
 
 GO
-CREATE TABLE REJUNTE_SA.BI_factura (
-    id BIGINT PRIMARY KEY,
-    id_sucursal BIGINT,
-    id_cliente BIGINT,
-    id_tiempo BIGINT,
-    id_turno_venta BIGINT,
-    total decimal (38,2)
-)
-    
-GO
-CREATE TABLE REJUNTE_SA.BI_compra (
-    id DECIMAL(18, 0) PRIMARY KEY,
-    id_sucursal BIGINT,
-    id_proveedor BIGINT,
-    id_tiempo BIGINT,
-    total decimal(38,2)
-)
-    
-GO
-CREATE TABLE REJUNTE_SA.BI_sucursal (
-    id BIGINT PRIMARY KEY,
-    id_datos_contacto BIGINT,
-    id_ubicacion BIGINT,
-    direccion NVARCHAR(255)
-)
-
-GO
 CREATE TABLE REJUNTE_SA.BI_tipo_material(
     id BIGINT PRIMARY KEY,
     descripcion NVARCHAR(255)
-)
-
-GO
-CREATE TABLE REJUNTE_SA.BI_envio(
-    id decimal(18,0) PRIMARY KEY,
-    id_factura BIGINT,
-    fecha_programada DATETIME2(6),
-    fecha_entrega DATETIME2(6),
-    importe_traslado DECIMAL(18, 2),
-    importe_subida DECIMAL(18, 2),
-    importe_total DECIMAL(18, 2)
-)
-
-GO
-CREATE TABLE REJUNTE_SA.BI_modelo(
-    id BIGINT PRIMARY KEY,
-    modelo NVARCHAR(255),
-    descripcion NVARCHAR(255),
-    precio DECIMAL(18, 2)
 )
 
 GO
@@ -98,18 +109,55 @@ CREATE TABLE REJUNTE_SA.BI_cliente (
     id_ubicacion BIGINT
 )
 
+-- CREATE FOREIGN KEYS
 GO
-CREATE TABLE REJUNTE_SA.BI_pedido (
-    id decimal(18,0) PRIMARY KEY,
-    id_sucursal BIGINT,
-    id_cliente BIGINT,
-    id_tiempo BIGINT,
-    id_turno_venta BIGINT,
-    total decimal(18,2),
-    id_estado_pedido BIGINT
-)
+-- FACTURA FKs
+ALTER TABLE REJUNTE_SA.BI_factura
+ADD FOREIGN KEY (id_sucursal) REFERENCES REJUNTE_SA.BI_sucursal(id);
+ALTER TABLE REJUNTE_SA.BI_factura
+ADD FOREIGN KEY (id_tiempo) REFERENCES REJUNTE_SA.BI_tiempo(id);
+ALTER TABLE REJUNTE_SA.BI_factura
+ADD FOREIGN KEY (id_cliente) REFERENCES REJUNTE_SA.BI_cliente(id);
+ALTER TABLE REJUNTE_SA.BI_factura
+ADD FOREIGN KEY (id_turno_venta) REFERENCES REJUNTE_SA.BI_turno_venta(id);
 
---utils
+-- PEDIDO FKs
+ALTER TABLE REJUNTE_SA.BI_pedido
+ADD FOREIGN KEY (id_sucursal) REFERENCES REJUNTE_SA.BI_sucursal(id);
+ALTER TABLE REJUNTE_SA.BI_pedido
+ADD FOREIGN KEY (id_cliente) REFERENCES REJUNTE_SA.BI_cliente(id);
+ALTER TABLE REJUNTE_SA.BI_pedido
+ADD FOREIGN KEY (id_tiempo) REFERENCES REJUNTE_SA.BI_tiempo(id);
+ALTER TABLE REJUNTE_SA.BI_pedido
+ADD FOREIGN KEY (id_estado_pedido) REFERENCES REJUNTE_SA.BI_estado_pedido(id);
+ALTER TABLE REJUNTE_SA.BI_pedido
+ADD FOREIGN KEY (id_modelo) REFERENCES REJUNTE_SA.BI_modelo(id);
+
+-- COMPRA FKs
+ALTER TABLE REJUNTE_SA.BI_compra
+ADD FOREIGN KEY (id_sucursal) REFERENCES REJUNTE_SA.BI_sucursal(id);
+ALTER TABLE REJUNTE_SA.BI_compra
+ADD FOREIGN KEY (id_cliente) REFERENCES REJUNTE_SA.BI_cliente(id);
+ALTER TABLE REJUNTE_SA.BI_compra
+ADD FOREIGN KEY (id_tiempo) REFERENCES REJUNTE_SA.BI_tiempo(id);
+
+-- ENVIO FKs
+ALTER TABLE REJUNTE_SA.BI_envio
+ADD FOREIGN KEY (id_sucursal) REFERENCES REJUNTE_SA.BI_sucursal(id);
+ALTER TABLE REJUNTE_SA.BI_envio
+ADD FOREIGN KEY (id_cliente) REFERENCES REJUNTE_SA.BI_cliente(id);
+
+-- SUCURSAL FKs
+ALTER TABLE REJUNTE_SA.BI_sucursal
+ADD FOREIGN KEY (id_ubicacion) REFERENCES REJUNTE_SA.BI_ubicacion(id);
+
+-- CLIENTE FKs
+ALTER TABLE REJUNTE_SA.BI_cliente
+ADD FOREIGN KEY (id_ubicacion) REFERENCES REJUNTE_SA.BI_ubicacion(id);
+ALTER TABLE REJUNTE_SA.BI_cliente
+ADD FOREIGN KEY (id_rango_etario) REFERENCES REJUNTE_SA.BI_rango_etario(id);
+
+-- CREATE FUNCTIONS
 GO 
 CREATE FUNCTION REJUNTE_SA.obtenerCuatrimestre(@fecha DATETIME2(6))
 RETURNS INT
@@ -152,23 +200,90 @@ GO
 CREATE FUNCTION REJUNTE_SA.obtener_id_turno (@fecha DATETIME2(6))
 RETURNS BIGINT AS 
 BEGIN 
-DECLARE @id_turno BIGINT
-SET @id_turno = (
-    SELECT id
-    FROM REJUNTE_SA.BI_turno_venta
-    WHERE CAST(@fecha as TIME) BETWEEN horario_inicio AND horario_fin
-)
-RETURN @id_turno
+    DECLARE @id_turno BIGINT
+    SET @id_turno = (
+        SELECT id
+        FROM REJUNTE_SA.BI_turno_venta
+        WHERE CAST(@fecha as TIME) BETWEEN horario_inicio AND horario_fin
+    )
+    RETURN @id_turno
+END
+
+GO
+CREATE FUNCTION REJUNTE_SA.obtener_es_fecha_cumplida (@fecha_programada DATETIME2(6), @fecha_entrega DATETIME2(6))
+RETURNS BIT AS
+BEGIN
+    DECLARE @es_fecha_cumplida BIT
+    SET @es_fecha_cumplida = @fecha_programada = @fecha_entrega
+    RETURN @es_fecha_cumplida
 END
 
 
+-- CREATE PROCEDURE
+-- MIGRATE FACT TABLES
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_bi_factura AS
+BEGIN
+    INSERT INTO REJUNTE_SA.BI_factura (id_sucursal, id_cliente, id_tiempo, id_turno_venta, total)
+    SELECT
+        id_sucursal,
+        id_cliente,
+        REJUNTE_SA.obtener_id_tiempo(fecha) AS 'id_tiempo',
+        REJUNTE_SA.obtener_id_turno(fecha) AS 'id_turno_venta',
+        total
+    FROM REJUNTE_SA.Factura
+    ORDER BY id
+END
 
--- Create Procedures migracion
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_bi_pedido AS
+BEGIN
+    INSERT INTO REJUNTE_SA.BI_pedido(id_sucursal, id_cliente, id_tiempo, total, id_estado_pedido)
+    SELECT
+        p.id_sucursal,
+        p.id_cliente,
+        REJUNTE_SA.obtener_id_tiempo(p.fecha),
+        p.total,
+        p.id_estado_pedido
+    FROM REJUNTE_SA.Pedido p
+END
+
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_bi_compra AS
+BEGIN
+    INSERT INTO REJUNTE_SA.BI_compra (id_sucursal, id_cliente, id_tiempo, total)
+    SELECT
+        id_sucursal,
+        id_proveedor,
+        REJUNTE_SA.obtener_id_tiempo(fecha) AS 'id_tiempo',
+        total
+    FROM REJUNTE_SA.Compra c
+END
+
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_bi_envio AS
+BEGIN
+   INSERT INTO REJUNTE_SA.BI_envio(id_cliente, id_sucursal, fecha_programada, fecha_entrega, es_fecha_entrega, importe_traslado, importe_subida, importe_total)
+    select
+        F.id_cliente,
+        F.id_sucursal,
+        E.fecha_programada,
+        E.fecha_entrega,
+        REJUNTE_SA.obtener_es_fecha_cumplida(E.fecha_programada, E.fecha_entrega) AS 'es_fecha_entrega',
+        E.importe_traslado,
+        E.importe_subida,
+        E.importe_total
+    from REJUNTE_SA.Envio E
+    inner join REJUNTE_SA.Factura F on F.id = e.id_factura
+END
+
+
+-- MIGRATE DIMENSION TABLES
 GO
 CREATE PROCEDURE REJUNTE_SA.migrar_bi_ubicacion
 AS
 BEGIN
-    INSERT INTO REJUNTE_SA.BI_ubicacion (id_localidad, nombre_localidad, nombre_provincia)
+    INSERT INTO REJUNTE_SA.BI_ubicacion (id, localidad, provincia)
     SELECT
         l.id,
         l.nombre,
@@ -229,45 +344,17 @@ BEGIN
 END
 
 GO
-CREATE PROCEDURE REJUNTE_SA.migrar_bi_factura AS 
-BEGIN
-    INSERT INTO REJUNTE_SA.BI_factura (id, id_sucursal, id_cliente, id_tiempo, id_turno_venta, total)
-    SELECT
-        id,
-        id_sucursal,
-        id_cliente,
-        REJUNTE_SA.obtener_id_tiempo(fecha) AS 'id_tiempo',
-        REJUNTE_SA.obtener_id_turno(fecha) AS 'id_turno_venta',
-        total
-    FROM REJUNTE_SA.Factura
-    ORDER BY id
-END
-
-GO
-CREATE PROCEDURE REJUNTE_SA.migrar_bi_compra AS
-BEGIN 
-    INSERT INTO REJUNTE_SA.BI_compra (id, id_sucursal, id_proveedor, id_tiempo, total)
-    SELECT
-        id,
-        id_sucursal,
-        id_proveedor,
-        REJUNTE_SA.obtener_id_tiempo(fecha) AS 'id_tiempo',
-        total
-    FROM REJUNTE_SA.Compra c
-END 
-
-GO
 CREATE PROCEDURE REJUNTE_SA.migrar_bi_sucursal AS 
 BEGIN 
     INSERT INTO REJUNTE_SA.BI_sucursal (id, id_datos_contacto, id_ubicacion, direccion)
     SELECT
         s.id,
         s.id_datos_contacto,
-        u.id_localidad,
+        u.id,
         s.direccion
     FROM REJUNTE_SA.Sucursal s
     JOIN REJUNTE_SA.BI_ubicacion u
-        ON s.id_localidad = u.id_localidad
+        ON s.id = u.id
 END
 
 
@@ -293,22 +380,6 @@ BEGIN
     from REJUNTE_SA.Material_Tipo MT
 END
 
-
-GO
-CREATE PROCEDURE REJUNTE_SA.migrar_bi_envio AS
-BEGIN
-   INSERT INTO REJUNTE_SA.BI_envio(id, id_factura, fecha_programada, fecha_entrega, importe_traslado, importe_subida, importe_total)
-    select
-        E.id,
-        E.id_factura,
-        E.fecha_programada,
-        E.fecha_entrega,
-        E.importe_traslado,
-        E.importe_subida,
-        E.importe_total
-    from REJUNTE_SA.Envio E
-END
-
 GO
 CREATE PROCEDURE REJUNTE_SA.migrar_bi_cliente AS
 BEGIN
@@ -321,29 +392,15 @@ BEGIN
         r.id AS 'Id rango etario',
         c.direccion,
         c.id_datos_contacto,
-        c.id_localidad
+        c.id
     FROM REJUNTE_SA.Cliente c
     JOIN REJUNTE_SA.BI_rango_etario r
         ON (YEAR(GETDATE()) - YEAR(c.fecha_nacimiento)) BETWEEN r.edad_minima AND r.edad_maxima
     ORDER BY c.id
 END
 
-GO
-CREATE PROCEDURE REJUNTE_SA.migrar_bi_pedido AS
-BEGIN
-    INSERT INTO REJUNTE_SA.BI_pedido(id, id_sucursal, id_cliente, id_tiempo, id_turno_venta, total, id_estado_pedido)
-    SELECT
-        p.id,
-        p.id_sucursal,
-        p.id_cliente,
-        REJUNTE_SA.obtener_id_tiempo(p.fecha),
-        REJUNTE_SA.obtener_id_turno(p.fecha),
-        p.total,
-        p.id_estado_pedido
-    FROM REJUNTE_SA.Pedido p
-END
--- Create Views
 
+-- CREATE VIEWS
 GO -- 1
 CREATE VIEW REJUNTE_SA.BI_ganancias AS
 SELECT
@@ -371,7 +428,7 @@ CREATE VIEW REJUNTE_SA.BI_factura_promedio_mensual AS
 SELECT
     Bt.anio AS anio,
     Bt.cuatrimestre AS cuatrimestre,
-    Bu.nombre_provincia AS provincia,
+    Bu.provincia AS provincia,
     COUNT(*) AS cantidad_facturas,
     SUM(bf.total) AS total_importe,
     SUM(bf.total) * 1.0 / COUNT(*) AS factura_promedio_mensual
@@ -380,19 +437,19 @@ FROM
 INNER JOIN
     REJUNTE_SA.BI_sucursal Bs ON bs.id = bf.id_sucursal
 INNER JOIN
-    REJUNTE_SA.BI_ubicacion Bu ON BU.id_localidad = BS.id_ubicacion
+    REJUNTE_SA.BI_ubicacion Bu ON BU.id = BS.id_ubicacion
 INNER JOIN
     REJUNTE_SA.BI_tiempo Bt ON Bt.id = BF.id_tiempo
 GROUP BY
     Bt.anio,
     Bt.cuatrimestre,
-    Bu.nombre_provincia;
+    Bu.provincia;
 
 GO -- 3
 CREATE VIEW REJUNTE_SA.BI_rendimiento_de_modelos AS
     SELECT 1 as test
 
-GO -- 4
+GO -- 4 con los cambios se rompio esto :(
 CREATE VIEW REJUNTE_SA.BI_volumen_pedidos AS
 SELECT
     s.id as 'sucursal',
@@ -435,7 +492,7 @@ CREATE VIEW REJUNTE_SA.BI_localidades_que_pagan_mayor_costo_de_envio AS
     SELECT 1 as test
 
 
--- Exec Procedures
+-- EXEC PROCEDURES
 GO
 exec REJUNTE_SA.migrar_bi_ubicacion
 GO
@@ -464,7 +521,7 @@ GO
 exec REJUNTE_SA.migrar_bi_pedido
 
 
--- SELECTs VIEWs
+-- SELECT VIEWS
 
 -- select *
 -- from REJUNTE_SA.BI_ganancias Bg;
