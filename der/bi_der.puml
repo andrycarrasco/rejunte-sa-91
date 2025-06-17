@@ -57,6 +57,7 @@ entity BI_envio <<Fact>> {
     es_fecha_cumplida: bit
     importe_traslado : decimal
     importe_subida : decimal
+    importe_total : decimal
 }
 
 ' Dimensiones
