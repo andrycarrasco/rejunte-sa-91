@@ -100,3 +100,67 @@ where id_tiempo=1 and id_sucursal=37;
 
 select *
 from REJUNTE_SA.BI_tiempo Bt;
+
+
+select *
+from REJUNTE_SA.BI_factura_promedio_mensual_2 Bfpm
+order by anio, cuatrimestre, provincia;
+
+-- +----+------------+------------+-----------------+-------------+------------------------+
+-- |anio|cuatrimestre|provincia   |cantidad_facturas|total_importe|factura_promedio_mensual|
+-- +----+------------+------------+-----------------+-------------+------------------------+
+-- |2026|1           |Buenos Aires|785              |652520853.85 |831236.756496           |
+-- |2026|1           |Cordoba     |383              |326081192.74 |851386.926214           |
+-- |2026|1           |Entre Rios  |404              |351515590.28 |870088.094752           |
+-- +----+------------+------------+-----------------+-------------+------------------------+
+
+-- select *
+-- from REJUNTE_SA.BI_volumen_pedidos Bvp
+-- ORDER BY sucursal, anio, mes, [horario inicio turno]
+
+select *
+from REJUNTE_SA.BI_ubicacion Bu;
+
+
+select
+    count(bf.id) as cantidad_facturas,
+    sum(bf.total) as total_importe,
+    avg(bf.total * 1.0) as factura_promedio_mensual
+from REJUNTE_SA.BI_factura Bf
+inner join REJUNTE_SA.BI_sucursal Bs on Bs.id = Bf.id_sucursal
+WHERE BF.id_tiempo in (1,2,3,4)
+  and bs.id_ubicacion in (select id_localidad from REJUNTE_SA.BI_ubicacion Bu where nombre_provincia='Buenos Aires')
+
+SELECT
+    Bt.anio AS anio,
+    Bt.cuatrimestre AS cuatrimestre,
+    Bu.nombre_provincia AS provincia,
+    COUNT(bf.id) AS cantidad_facturas,
+    SUM(bf.total) AS total_importe,
+    AVG(bf.total * 1.0) AS factura_promedio_mensual
+FROM
+    REJUNTE_SA.BI_factura Bf
+INNER JOIN
+    REJUNTE_SA.BI_sucursal Bs ON bs.id = bf.id_sucursal
+INNER JOIN
+    REJUNTE_SA.BI_ubicacion Bu ON BU.id_localidad = BS.id_ubicacion
+INNER JOIN
+    REJUNTE_SA.BI_tiempo Bt ON Bt.id = BF.id_tiempo
+GROUP BY
+    Bt.anio,
+    Bt.cuatrimestre,
+    Bu.nombre_provincia
+order by anio, cuatrimestre, provincia;
+
+select *
+from REJUNTE_SA.Compra C
+inner join REJUNTE_SA.Detalle_Compra DC on C.id = DC.id_compra
+where id_compra=12242231;
+
+select *
+from REJUNTE_SA.Detalle_Compra DC
+where id_compra=12242231;
+
+
+select *
+from REJUNTE_SA.Envio E;

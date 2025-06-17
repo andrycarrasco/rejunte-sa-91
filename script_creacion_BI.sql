@@ -1,7 +1,7 @@
 -- Create Tables
 GO
 CREATE TABLE REJUNTE_SA.BI_ubicacion (
-    id_localidad BIGINT PRIMARY KEY,
+    id BIGINT PRIMARY KEY,
     nombre_localidad NVARCHAR(255),
     nombre_provincia NVARCHAR(255)
 )
@@ -168,7 +168,7 @@ GO
 CREATE PROCEDURE REJUNTE_SA.migrar_bi_ubicacion
 AS
 BEGIN
-    INSERT INTO REJUNTE_SA.BI_ubicacion (id_localidad, nombre_localidad, nombre_provincia)
+    INSERT INTO REJUNTE_SA.BI_ubicacion (id, nombre_localidad, nombre_provincia)
     SELECT
         l.id,
         l.nombre,
@@ -263,11 +263,11 @@ BEGIN
     SELECT
         s.id,
         s.id_datos_contacto,
-        u.id_localidad,
+        u.id,
         s.direccion
     FROM REJUNTE_SA.Sucursal s
     JOIN REJUNTE_SA.BI_ubicacion u
-        ON s.id_localidad = u.id_localidad
+        ON s.id = u.id
 END
 
 
@@ -321,7 +321,7 @@ BEGIN
         r.id AS 'Id rango etario',
         c.direccion,
         c.id_datos_contacto,
-        c.id_localidad
+        c.id
     FROM REJUNTE_SA.Cliente c
     JOIN REJUNTE_SA.BI_rango_etario r
         ON (YEAR(GETDATE()) - YEAR(c.fecha_nacimiento)) BETWEEN r.edad_minima AND r.edad_maxima
@@ -380,7 +380,7 @@ FROM
 INNER JOIN
     REJUNTE_SA.BI_sucursal Bs ON bs.id = bf.id_sucursal
 INNER JOIN
-    REJUNTE_SA.BI_ubicacion Bu ON BU.id_localidad = BS.id_ubicacion
+    REJUNTE_SA.BI_ubicacion Bu ON BU.id = BS.id_ubicacion
 INNER JOIN
     REJUNTE_SA.BI_tiempo Bt ON Bt.id = BF.id_tiempo
 GROUP BY

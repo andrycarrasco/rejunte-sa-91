@@ -32,32 +32,78 @@ Para correr el archivo **.puml**, deben tener instalado:
 - [x] Bi_cliente
 - [X] BI_pedido
 
-
-
 #### Dimensiones a tener en cuenta para cada vista
-1. Dimension mes    
-2. Dimension provincia, cuatrimestre    
-3. Dimension modelos, localidad y rango etario  
-4. Dimension turnos, sucursal, mes, pedido  
-5. Dimension estado, cuatrimestre y sucursal  
-6. Dimension sucursal, cuatrimestre  
-7. Dimension mes  
-8. Dimension tipo_material, sucursal, cuatrimestre  
-9. Dimension envios  
-10. Dimension localidades  
+1. **Ganancias**: Total de ingresos (facturación) – total de egresos (compras), por cada mes, por cada sucursal.
+
+> Hechos: Factura, Compra  
+> Dimensiones: Tiempo, Sucursal
+
+2. **Factura promedio mensual**: Valor promedio de las facturas (en $) según la provincia de la sucursal para cada cuatrimestre de cada año. Se calcula en función de la sumatoria del importe de las facturas sobre el total de las mismas durante dicho período.
+
+> Hechos: Factura  
+> Dimensiones: Sucursal, Ubicacion, Tiempo
+
+3. **Rendimiento de modelos**: Los 3 modelos con mayores ventas para cada cuatrimestre de cada año según la localidad de la sucursal y rango etario de los clientes.
+
+> Hechos: Pedido o Detalle_Pedido  
+> Dimensiones: Modelo, Ubicacion, Sucursal, Tiempo, Cliente, Rango_Etario
+
+4. **Volumen de pedidos**: Cantidad de pedidos registrados por turno, por sucursal según el mes de cada año.
+
+> Hechos: Pedido  
+> Dimensiones: Turno, Sucursal, Tiempo
+
+5. **Conversión de pedidos**: Porcentaje de pedidos según estado, por cuatrimestre y sucursal.
+
+> Hechos: Pedido  
+> Dimensiones: Estado_Pedido, Tiempo, Sucursal
+
+6. **Tiempo promedio de fabricación**: Tiempo promedio que tarda cada sucursal entre que se registra un pedido y registra la factura para el mismo. Por cuatrimestre.
+
+> Hechos: Pedido + Factura  
+> Dimensiones: Sucursal, Tiempo
+
+7. **Promedio de Compras**: Importe promedio de compras por mes.
+
+> Hechos: Compra  
+> Dimensiones: Tiempo
+
+8. **Compras por Tipo de Material**: Importe total gastado por tipo de material, sucursal y cuatrimestre.
+
+> Hechos: Compra o Detalle_Compra  
+> Dimensiones: Tipo_Material, Sucursal, Tiempo
+
+9. **Porcentaje de cumplimiento de envíos** en los tiempos programados por mes.  
+   Se calcula teniendo en cuenta los envíos cumplidos en fecha sobre el total de envíos para el período.
+
+> Hechos: Envio  
+> Dimensiones: Tiempo, Sucursal?
+
+10. **Localidades que pagan mayor costo de envío**: Las 3 localidades (tomando la localidad del cliente) con mayor promedio de costo de envío (total).
+
+> Hechos: Envio  
+> Dimensiones: Ubicacion, Cliente
+
+
 
 ### Creacion de Procedures BI
-- [ ] migracion_bi_ubicacion
-- [ ] migracion_bi_rango_etario
-- [ ] migracion_bi_tiempo
-- [ ] migracion_bi_turno_ventas
-- [ ] migracion_bi_tipo_material
-- [ ] migracion_bi_modelo_sillon
-- [ ] migracion_bi_estado_pedido
+- [x] migrar_bi_ubicacion
+- [x] migrar_bi_tiempo
+- [x] migrar_bi_turno_venta
+- [x] migrar_bi_rango_etario
+- [x] migrar_bi_estado_pedido
+- [x] migrar_bi_factura
+- [x] migrar_bi_compra
+- [x] migrar_bi_sucursal
+- [x] migrar_bi_modelo
+- [x] migrar_bi_envio
+- [x] migrar_bi_tipo_material
+- [x] migrar_bi_cliente
+- [x] migrar_bi_pedido
  
 ### Creacion de Views BI
 - [x] 1-Ganancias
-- [ ] 2-Factura promedio mensual
+- [x] 2-Factura promedio mensual
 - [ ] 3-Rendimiento de modelos
 - [X] 4-Volumen de pedidos
 - [ ] 5-Conversion de pedidos

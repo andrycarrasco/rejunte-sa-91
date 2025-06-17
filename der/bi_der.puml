@@ -1,0 +1,141 @@
+@startuml Modelo BI - Sillones
+skinparam linetype ortho
+hide circle
+skinparam shadowing false
+title Modelo BI - Sillones
+left to right direction
+
+skinparam class {
+  BackgroundColor<<Fact>> PaleGreen
+  BackgroundColor<<Dimension>> Wheat
+}
+
+' Hechos
+entity BI_factura <<Fact>> {
+    id_sucursal : bigint
+    id_tiempo : bigint
+    id_cliente : bigint
+'    id_envio : bigint
+    id_turno_venta : bigint
+    total : decimal
+}
+entity BI_pedido <<Fact>> {
+    id_sucursal : bigint
+    id_cliente : bigint
+    id_tiempo : bigint
+    id_estado_pedido : bigint
+    id_modelo : bigint
+    total : decimal
+}
+
+entity BI_compra <<Fact>> {
+    id_sucursal : bigint
+    id_material : bigint
+    id_tiempo : bigint
+    total : decimal
+}
+
+'entity BI_factura_x_compra <<Fact>> {
+'    id_sucursal : bigint
+'    id_tiempo : bigint
+'    id_factura : bigint
+'    id_compra : bigint
+'}
+'
+'entity BI_pedido_x_factura <<Fact>> {
+'    id_factura : bigint
+'    id_pedido : bigint
+'    id_sucursal : bigint
+'    id_cliente : bigint
+'}
+
+entity BI_envio <<Fact>> {
+    id_cliente : bigint
+    id_sucursal : bigint
+    fecha_programada : datetime
+    fecha_entrega : datetime
+    es_fecha_cumplida: bool
+    importe_traslado : decimal
+    importe_subida : decimal
+}
+
+' Dimensiones
+entity BI_tiempo <<Dimension>> {
+    id : bigint
+    anio : bigint
+    mes : bigint
+    cuatrimestre : bigint
+}
+
+entity BI_ubicacion <<Dimension>> {
+    id : bigint
+    localidad : varchar
+    provincia : varchar
+}
+
+entity BI_sucursal <<Dimension>> {
+    id : bigint
+    nombre : varchar
+    id_ubicacion : bigint
+}
+
+entity BI_modelo <<Dimension>> {
+    id : bigint
+    modelo : varchar
+    tipo_material : varchar
+}
+
+entity BI_rango_etario <<Dimension>> {
+    id : bigint
+    edad_minima : bigint
+    edad_maxima : bigint
+}
+
+entity BI_turno_venta <<Dimension>> {
+    id: bigint
+    horario_inicio : time
+    horario_fin : time
+}
+
+entity BI_estado_pedido <<Dimension>> {
+    id : int
+    descripcion : varchar
+}
+
+entity BI_tipo_material <<Dimension>> {
+    id : bigint
+    tipo : varchar
+    nombre : varchar
+}
+
+entity BI_cliente <<Dimension>> {
+    id : bigint
+    id_rango_etario : bigint
+    id_ubicacion : bigint
+}
+
+' Relaciones
+BI_envio }o--|| BI_cliente
+BI_envio }o--|| BI_sucursal
+
+BI_factura }o--|| BI_sucursal
+BI_factura }o--|| BI_tiempo
+BI_factura }o--|| BI_cliente
+BI_factura }o-right-|| BI_turno_venta
+
+BI_pedido }o--|| BI_sucursal
+BI_pedido }o--|| BI_cliente
+BI_pedido }o-left-|| BI_tiempo
+BI_pedido }o--|| BI_estado_pedido
+BI_pedido }o--|| BI_modelo
+
+BI_compra }o-down-|| BI_sucursal
+BI_compra }o-up-|| BI_tipo_material
+BI_compra }o-right-|| BI_tiempo
+
+BI_cliente }o--|| BI_rango_etario
+
+BI_ubicacion ||-left-o{ BI_sucursal
+BI_ubicacion ||-right-o{ BI_cliente
+
+@enduml
