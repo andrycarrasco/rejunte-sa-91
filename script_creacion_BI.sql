@@ -97,7 +97,7 @@ CREATE TABLE REJUNTE_SA.BI_tipo_material(
     descripcion NVARCHAR(255)
 )
 
-GO
+GO -- Revisar campos innecesarios de acuerdo al DER
 CREATE TABLE REJUNTE_SA.BI_cliente (
     id BIGINT PRIMARY KEY,
     dni BIGINT UNIQUE,
