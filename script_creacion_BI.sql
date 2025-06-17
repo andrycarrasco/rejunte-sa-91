@@ -15,14 +15,13 @@ CREATE TABLE REJUNTE_SA.BI_pedido (
     id_tiempo BIGINT,
     id_estado_pedido BIGINT,
     id_modelo BIGINT,
-    -- id_turno_venta BIGINT,
     total decimal(18,2),
 )
 
 GO
 CREATE TABLE REJUNTE_SA.BI_compra (
     id_sucursal BIGINT,
-    id_cliente BIGINT,
+    id_material BIGINT,
     id_tiempo BIGINT,
     total decimal(38,2)
 )
@@ -201,17 +200,85 @@ GO
 CREATE FUNCTION REJUNTE_SA.obtener_id_turno (@fecha DATETIME2(6))
 RETURNS BIGINT AS 
 BEGIN 
-DECLARE @id_turno BIGINT
-SET @id_turno = (
-    SELECT id
-    FROM REJUNTE_SA.BI_turno_venta
-    WHERE CAST(@fecha as TIME) BETWEEN horario_inicio AND horario_fin
-)
-RETURN @id_turno
+    DECLARE @id_turno BIGINT
+    SET @id_turno = (
+        SELECT id
+        FROM REJUNTE_SA.BI_turno_venta
+        WHERE CAST(@fecha as TIME) BETWEEN horario_inicio AND horario_fin
+    )
+    RETURN @id_turno
+END
+
+GO
+CREATE FUNCTION REJUNTE_SA.obtener_es_fecha_cumplida (@fecha_programada DATETIME2(6), @fecha_entrega DATETIME2(6))
+RETURNS BIT AS
+BEGIN
+    DECLARE @es_fecha_cumplida BIT
+    SET @es_fecha_cumplida = @fecha_programada = @fecha_entrega
+    RETURN @es_fecha_cumplida
 END
 
 
--- CREATE PROCEDURES
+-- CREATE PROCEDURE
+-- MIGRATE FACT TABLES
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_bi_factura AS
+BEGIN
+    INSERT INTO REJUNTE_SA.BI_factura (id_sucursal, id_cliente, id_tiempo, id_turno_venta, total)
+    SELECT
+        id_sucursal,
+        id_cliente,
+        REJUNTE_SA.obtener_id_tiempo(fecha) AS 'id_tiempo',
+        REJUNTE_SA.obtener_id_turno(fecha) AS 'id_turno_venta',
+        total
+    FROM REJUNTE_SA.Factura
+    ORDER BY id
+END
+
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_bi_pedido AS
+BEGIN
+    INSERT INTO REJUNTE_SA.BI_pedido(id_sucursal, id_cliente, id_tiempo, total, id_estado_pedido)
+    SELECT
+        p.id_sucursal,
+        p.id_cliente,
+        REJUNTE_SA.obtener_id_tiempo(p.fecha),
+        p.total,
+        p.id_estado_pedido
+    FROM REJUNTE_SA.Pedido p
+END
+
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_bi_compra AS
+BEGIN
+    INSERT INTO REJUNTE_SA.BI_compra (id_sucursal, id_cliente, id_tiempo, total)
+    SELECT
+        id_sucursal,
+        id_proveedor,
+        REJUNTE_SA.obtener_id_tiempo(fecha) AS 'id_tiempo',
+        total
+    FROM REJUNTE_SA.Compra c
+END
+
+GO
+CREATE PROCEDURE REJUNTE_SA.migrar_bi_envio AS
+BEGIN
+   INSERT INTO REJUNTE_SA.BI_envio(id_cliente, id_sucursal, fecha_programada, fecha_entrega, es_fecha_entrega, importe_traslado, importe_subida, importe_total)
+    select
+        F.id_cliente,
+        F.id_sucursal,
+        E.fecha_programada,
+        E.fecha_entrega,
+        REJUNTE_SA.obtener_es_fecha_cumplida(E.fecha_programada, E.fecha_entrega) AS 'es_fecha_entrega',
+        E.importe_traslado,
+        E.importe_subida,
+        E.importe_total
+    from REJUNTE_SA.Envio E
+    inner join REJUNTE_SA.Factura F on F.id = e.id_factura
+END
+
+
+-- MIGRATE DIMENSION TABLES
 GO
 CREATE PROCEDURE REJUNTE_SA.migrar_bi_ubicacion
 AS
@@ -277,34 +344,6 @@ BEGIN
 END
 
 GO
-CREATE PROCEDURE REJUNTE_SA.migrar_bi_factura AS 
-BEGIN
-    INSERT INTO REJUNTE_SA.BI_factura (id, id_sucursal, id_cliente, id_tiempo, id_turno_venta, total)
-    SELECT
-        id,
-        id_sucursal,
-        id_cliente,
-        REJUNTE_SA.obtener_id_tiempo(fecha) AS 'id_tiempo',
-        REJUNTE_SA.obtener_id_turno(fecha) AS 'id_turno_venta',
-        total
-    FROM REJUNTE_SA.Factura
-    ORDER BY id
-END
-
-GO
-CREATE PROCEDURE REJUNTE_SA.migrar_bi_compra AS
-BEGIN 
-    INSERT INTO REJUNTE_SA.BI_compra (id, id_sucursal, id_proveedor, id_tiempo, total)
-    SELECT
-        id,
-        id_sucursal,
-        id_proveedor,
-        REJUNTE_SA.obtener_id_tiempo(fecha) AS 'id_tiempo',
-        total
-    FROM REJUNTE_SA.Compra c
-END 
-
-GO
 CREATE PROCEDURE REJUNTE_SA.migrar_bi_sucursal AS 
 BEGIN 
     INSERT INTO REJUNTE_SA.BI_sucursal (id, id_datos_contacto, id_ubicacion, direccion)
@@ -341,22 +380,6 @@ BEGIN
     from REJUNTE_SA.Material_Tipo MT
 END
 
-
-GO
-CREATE PROCEDURE REJUNTE_SA.migrar_bi_envio AS
-BEGIN
-   INSERT INTO REJUNTE_SA.BI_envio(id, id_factura, fecha_programada, fecha_entrega, importe_traslado, importe_subida, importe_total)
-    select
-        E.id,
-        E.id_factura,
-        E.fecha_programada,
-        E.fecha_entrega,
-        E.importe_traslado,
-        E.importe_subida,
-        E.importe_total
-    from REJUNTE_SA.Envio E
-END
-
 GO
 CREATE PROCEDURE REJUNTE_SA.migrar_bi_cliente AS
 BEGIN
@@ -374,21 +397,6 @@ BEGIN
     JOIN REJUNTE_SA.BI_rango_etario r
         ON (YEAR(GETDATE()) - YEAR(c.fecha_nacimiento)) BETWEEN r.edad_minima AND r.edad_maxima
     ORDER BY c.id
-END
-
-GO
-CREATE PROCEDURE REJUNTE_SA.migrar_bi_pedido AS
-BEGIN
-    INSERT INTO REJUNTE_SA.BI_pedido(id, id_sucursal, id_cliente, id_tiempo, id_turno_venta, total, id_estado_pedido)
-    SELECT
-        p.id,
-        p.id_sucursal,
-        p.id_cliente,
-        REJUNTE_SA.obtener_id_tiempo(p.fecha),
-        REJUNTE_SA.obtener_id_turno(p.fecha),
-        p.total,
-        p.id_estado_pedido
-    FROM REJUNTE_SA.Pedido p
 END
 
 
@@ -441,7 +449,7 @@ GO -- 3
 CREATE VIEW REJUNTE_SA.BI_rendimiento_de_modelos AS
     SELECT 1 as test
 
-GO -- 4
+GO -- 4 con los cambios se rompio esto :(
 CREATE VIEW REJUNTE_SA.BI_volumen_pedidos AS
 SELECT
     s.id as 'sucursal',
