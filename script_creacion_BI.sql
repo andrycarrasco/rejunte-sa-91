@@ -471,7 +471,16 @@ CREATE VIEW REJUNTE_SA.BI_compras_por_tipo_de_material AS
 
 GO -- 9
 CREATE VIEW REJUNTE_SA.BI_porcentaje_de_cumplimiento_de_envios AS
-    SELECT 1 as test
+SELECT 
+t.anio,
+t.mes,
+CAST( SUM(CASE WHEN (e.fecha_programada = e.fecha_entrega) THEN 1 ELSE 0
+END) * 100.0 / COUNT(*) AS decimal(18,2)) 
+AS 'Porcentaje de envios cumplidos'
+FROM REJUNTE_SA.BI_envio e
+INNER JOIN REJUNTE_SA.BI_tiempo t 
+ON YEAR(e.fecha_programada) = t.anio AND MONTH(e.fecha_programada) = t.mes
+GROUP BY t.id, t.anio, t.mes
 
 GO -- 10
 CREATE VIEW REJUNTE_SA.BI_localidades_que_pagan_mayor_costo_de_envio AS
