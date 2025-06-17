@@ -104,7 +104,7 @@ Para correr el archivo **.puml**, deben tener instalado:
 ### Creacion de Views BI
 - [x] 1-Ganancias
 - [x] 2-Factura promedio mensual
-- [ ] 3-Rendimiento de modelos
+- [x] 3-Rendimiento de modelos
 - [X] 4-Volumen de pedidos
 - [ ] 5-Conversion de pedidos
 - [ ] 6-Tiempo promedio de fabricación

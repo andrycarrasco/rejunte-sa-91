@@ -15,8 +15,8 @@ entity BI_factura <<Fact>> {
     id_sucursal : bigint
     id_tiempo : bigint
     id_cliente : bigint
-'    id_envio : bigint
     id_turno_venta : bigint
+    cantidad : bigint
     total : decimal
 }
 entity BI_pedido <<Fact>> {
@@ -25,6 +25,8 @@ entity BI_pedido <<Fact>> {
     id_tiempo : bigint
     id_estado_pedido : bigint
     id_modelo : bigint
+    id_turno_venta : bigint
+    cantidad : bigint
     total : decimal
 }
 
@@ -32,22 +34,9 @@ entity BI_compra <<Fact>> {
     id_sucursal : bigint
     id_material : bigint
     id_tiempo : bigint
+    cantidad : bigint
     total : decimal
 }
-
-'entity BI_factura_x_compra <<Fact>> {
-'    id_sucursal : bigint
-'    id_tiempo : bigint
-'    id_factura : bigint
-'    id_compra : bigint
-'}
-'
-'entity BI_pedido_x_factura <<Fact>> {
-'    id_factura : bigint
-'    id_pedido : bigint
-'    id_sucursal : bigint
-'    id_cliente : bigint
-'}
 
 entity BI_envio <<Fact>> {
     id_cliente : bigint
@@ -55,8 +44,10 @@ entity BI_envio <<Fact>> {
     fecha_programada : datetime
     fecha_entrega : datetime
     es_fecha_cumplida: bit
+    cantidad : bigint
     importe_traslado : decimal
     importe_subida : decimal
+    importe_total : decimal
 }
 
 ' Dimensiones
