@@ -54,7 +54,7 @@ entity BI_envio <<Fact>> {
     id_sucursal : bigint
     fecha_programada : datetime
     fecha_entrega : datetime
-    es_fecha_cumplida: bool
+    es_fecha_cumplida: bit
     importe_traslado : decimal
     importe_subida : decimal
 }

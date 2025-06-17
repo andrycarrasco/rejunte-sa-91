@@ -1,9 +1,82 @@
--- Create Tables
+-- CREATE FACTS TABLES
+GO
+CREATE TABLE REJUNTE_SA.BI_factura (
+    id_sucursal BIGINT,
+    id_tiempo BIGINT,
+    id_cliente BIGINT,
+    id_turno_venta BIGINT,
+    total decimal (38,2)
+)
+
+GO
+CREATE TABLE REJUNTE_SA.BI_pedido (
+    id_sucursal BIGINT,
+    id_cliente BIGINT,
+    id_tiempo BIGINT,
+    id_estado_pedido BIGINT,
+    id_modelo BIGINT,
+    -- id_turno_venta BIGINT,
+    total decimal(18,2),
+)
+
+GO
+CREATE TABLE REJUNTE_SA.BI_compra (
+    id_sucursal BIGINT,
+    id_cliente BIGINT,
+    id_tiempo BIGINT,
+    total decimal(38,2)
+)
+
+GO
+CREATE TABLE REJUNTE_SA.BI_envio(
+    id_cliente BIGINT,
+    id_sucursal BIGINT,
+    fecha_programada DATETIME2(6),
+    fecha_entrega DATETIME2(6),
+    es_fecha_entrega BIT,
+    importe_traslado DECIMAL(18, 2),
+    importe_subida DECIMAL(18, 2),
+    importe_total DECIMAL(18, 2)
+)
+
+
+-- CREATE DIMENSIONS TABLES
+GO
+CREATE TABLE REJUNTE_SA.BI_tiempo (
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    anio INT,
+    mes INT,
+    cuatrimestre INT
+)
+
 GO
 CREATE TABLE REJUNTE_SA.BI_ubicacion (
     id BIGINT PRIMARY KEY,
-    nombre_localidad NVARCHAR(255),
-    nombre_provincia NVARCHAR(255)
+    localidad NVARCHAR(255),
+    provincia NVARCHAR(255)
+)
+
+GO
+CREATE TABLE REJUNTE_SA.BI_sucursal (
+    id BIGINT PRIMARY KEY,
+    id_datos_contacto BIGINT,
+    id_ubicacion BIGINT,
+    direccion NVARCHAR(255)
+)
+
+GO
+CREATE TABLE REJUNTE_SA.BI_modelo(
+    id BIGINT PRIMARY KEY,
+    modelo NVARCHAR(255),
+    descripcion NVARCHAR(255),
+    precio DECIMAL(18, 2)
+)
+
+GO
+CREATE TABLE REJUNTE_SA.BI_rango_etario (
+  id BIGINT IDENTITY(1,1) PRIMARY KEY,
+  edad_minima INT,
+  edad_maxima INT
 )
 
 GO
@@ -14,76 +87,15 @@ CREATE TABLE REJUNTE_SA.BI_turno_venta (
 )
 
 GO
-CREATE TABLE REJUNTE_SA.BI_tiempo (
-    id BIGINT IDENTITY(1,1) PRIMARY KEY,
-    anio INT,
-    mes INT,
-    cuatrimestre INT
-)
-
-GO 
-CREATE TABLE REJUNTE_SA.BI_rango_etario (
-  id BIGINT IDENTITY(1,1) PRIMARY KEY,
-  edad_minima INT,
-  edad_maxima INT
-)
-    
-GO
 CREATE TABLE REJUNTE_SA.BI_estado_pedido (
     id BIGINT PRIMARY KEY,
     descripcion NVARCHAR(255)
 )
 
 GO
-CREATE TABLE REJUNTE_SA.BI_factura (
-    id BIGINT PRIMARY KEY,
-    id_sucursal BIGINT,
-    id_cliente BIGINT,
-    id_tiempo BIGINT,
-    id_turno_venta BIGINT,
-    total decimal (38,2)
-)
-    
-GO
-CREATE TABLE REJUNTE_SA.BI_compra (
-    id DECIMAL(18, 0) PRIMARY KEY,
-    id_sucursal BIGINT,
-    id_proveedor BIGINT,
-    id_tiempo BIGINT,
-    total decimal(38,2)
-)
-    
-GO
-CREATE TABLE REJUNTE_SA.BI_sucursal (
-    id BIGINT PRIMARY KEY,
-    id_datos_contacto BIGINT,
-    id_ubicacion BIGINT,
-    direccion NVARCHAR(255)
-)
-
-GO
 CREATE TABLE REJUNTE_SA.BI_tipo_material(
     id BIGINT PRIMARY KEY,
     descripcion NVARCHAR(255)
-)
-
-GO
-CREATE TABLE REJUNTE_SA.BI_envio(
-    id decimal(18,0) PRIMARY KEY,
-    id_factura BIGINT,
-    fecha_programada DATETIME2(6),
-    fecha_entrega DATETIME2(6),
-    importe_traslado DECIMAL(18, 2),
-    importe_subida DECIMAL(18, 2),
-    importe_total DECIMAL(18, 2)
-)
-
-GO
-CREATE TABLE REJUNTE_SA.BI_modelo(
-    id BIGINT PRIMARY KEY,
-    modelo NVARCHAR(255),
-    descripcion NVARCHAR(255),
-    precio DECIMAL(18, 2)
 )
 
 GO
@@ -98,18 +110,8 @@ CREATE TABLE REJUNTE_SA.BI_cliente (
     id_ubicacion BIGINT
 )
 
-GO
-CREATE TABLE REJUNTE_SA.BI_pedido (
-    id decimal(18,0) PRIMARY KEY,
-    id_sucursal BIGINT,
-    id_cliente BIGINT,
-    id_tiempo BIGINT,
-    id_turno_venta BIGINT,
-    total decimal(18,2),
-    id_estado_pedido BIGINT
-)
 
---utils
+-- CREATE FUNCTIONS
 GO 
 CREATE FUNCTION REJUNTE_SA.obtenerCuatrimestre(@fecha DATETIME2(6))
 RETURNS INT
@@ -162,13 +164,12 @@ RETURN @id_turno
 END
 
 
-
--- Create Procedures migracion
+-- CREATE PROCEDURES
 GO
 CREATE PROCEDURE REJUNTE_SA.migrar_bi_ubicacion
 AS
 BEGIN
-    INSERT INTO REJUNTE_SA.BI_ubicacion (id, nombre_localidad, nombre_provincia)
+    INSERT INTO REJUNTE_SA.BI_ubicacion (id, localidad, provincia)
     SELECT
         l.id,
         l.nombre,
@@ -342,8 +343,9 @@ BEGIN
         p.id_estado_pedido
     FROM REJUNTE_SA.Pedido p
 END
--- Create Views
 
+
+-- CREATE VIEWS
 GO -- 1
 CREATE VIEW REJUNTE_SA.BI_ganancias AS
 SELECT
@@ -371,7 +373,7 @@ CREATE VIEW REJUNTE_SA.BI_factura_promedio_mensual AS
 SELECT
     Bt.anio AS anio,
     Bt.cuatrimestre AS cuatrimestre,
-    Bu.nombre_provincia AS provincia,
+    Bu.provincia AS provincia,
     COUNT(*) AS cantidad_facturas,
     SUM(bf.total) AS total_importe,
     SUM(bf.total) * 1.0 / COUNT(*) AS factura_promedio_mensual
@@ -386,7 +388,7 @@ INNER JOIN
 GROUP BY
     Bt.anio,
     Bt.cuatrimestre,
-    Bu.nombre_provincia;
+    Bu.provincia;
 
 GO -- 3
 CREATE VIEW REJUNTE_SA.BI_rendimiento_de_modelos AS
@@ -435,7 +437,7 @@ CREATE VIEW REJUNTE_SA.BI_localidades_que_pagan_mayor_costo_de_envio AS
     SELECT 1 as test
 
 
--- Exec Procedures
+-- EXEC PROCEDURES
 GO
 exec REJUNTE_SA.migrar_bi_ubicacion
 GO
@@ -464,7 +466,7 @@ GO
 exec REJUNTE_SA.migrar_bi_pedido
 
 
--- SELECTs VIEWs
+-- SELECT VIEWS
 
 -- select *
 -- from REJUNTE_SA.BI_ganancias Bg;
