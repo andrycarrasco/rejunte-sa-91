@@ -32,7 +32,7 @@ entity BI_pedido <<Fact>> {
 
 entity BI_compra <<Fact>> {
     id_sucursal : bigint
-    id_material : bigint
+    id_material_tipo : bigint
     id_tiempo : bigint
     cantidad : bigint
     total : decimal
@@ -95,8 +95,7 @@ entity BI_estado_pedido <<Dimension>> {
 
 entity BI_tipo_material <<Dimension>> {
     id : bigint
-    tipo : varchar
-    nombre : varchar
+    descripcion : varchar
 }
 
 entity BI_cliente <<Dimension>> {

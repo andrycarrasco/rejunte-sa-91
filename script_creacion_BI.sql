@@ -24,7 +24,7 @@ CREATE TABLE REJUNTE_SA.BI_pedido (
 GO
 CREATE TABLE REJUNTE_SA.BI_compra (
     id_sucursal BIGINT,
-    id_material BIGINT,
+    id_material_tipo BIGINT,
     id_tiempo BIGINT,
     cantidad BIGINT,
     total decimal(38,2)
@@ -145,7 +145,8 @@ ALTER TABLE REJUNTE_SA.BI_compra
 ADD FOREIGN KEY (id_sucursal) REFERENCES REJUNTE_SA.BI_sucursal(id);
 ALTER TABLE REJUNTE_SA.BI_compra
 ADD FOREIGN KEY (id_tiempo) REFERENCES REJUNTE_SA.BI_tiempo(id);
-
+ALTER TABLE REJUNTE_SA.BI_compra
+ADD FOREIGN KEY (id_material_tipo) REFERENCES REJUNTE_SA.BI_tipo_material(id);
 -- ENVIO FKs
 ALTER TABLE REJUNTE_SA.BI_envio
 ADD FOREIGN KEY (id_sucursal) REFERENCES REJUNTE_SA.BI_sucursal(id);
@@ -278,16 +279,17 @@ END
 GO
 CREATE PROCEDURE REJUNTE_SA.migrar_bi_compra AS
 BEGIN
-    INSERT INTO REJUNTE_SA.BI_compra (id_sucursal, id_material, id_tiempo, cantidad, total)
+    INSERT INTO REJUNTE_SA.BI_compra (id_sucursal, id_material_tipo, id_tiempo, cantidad, total)
     SELECT
         c.id_sucursal,
-        dc.id_material,
-        REJUNTE_SA.obtener_id_tiempo(fecha) AS 'id_tiempo',
+        M.id_material_tipo,
+        REJUNTE_SA.obtener_id_tiempo(fecha) AS id_tiempo,
         count(distinct c.id) as cantidad,
         sum(total) as total
     FROM REJUNTE_SA.Compra c
     inner join REJUNTE_SA.Detalle_Compra DC on c.id = DC.id_compra
-    group by c.id_sucursal, dc.id_material, REJUNTE_SA.obtener_id_tiempo(fecha)
+    inner join REJUNTE_SA.Material M on DC.id_material = M.id
+    group by c.id_sucursal,  M.id_material_tipo, REJUNTE_SA.obtener_id_tiempo(fecha)
 END
 
 GO
@@ -521,7 +523,7 @@ GO -- 5
 CREATE VIEW REJUNTE_SA.BI_conversion_de_pedidos AS
     SELECT 1 as test
 
-GO -- 6
+GO -- 6 PENDIENTE
 CREATE VIEW REJUNTE_SA.BI_tiempo_promedio_de_fabricacion AS
     SELECT 1 as test
 
@@ -531,7 +533,15 @@ CREATE VIEW REJUNTE_SA.BI_promedio_de_compras AS
 
 GO -- 8
 CREATE VIEW REJUNTE_SA.BI_compras_por_tipo_de_material AS
-    SELECT 1 as test
+SELECT
+    Btm.descripcion,
+    Bc.id_sucursal,
+    Bt.cuatrimestre,
+    sum(Bc.total) as total
+FROM REJUNTE_SA.BI_compra Bc
+INNER JOIN REJUNTE_SA.BI_tiempo Bt on Bt.id = Bc.id_tiempo
+inner join REJUNTE_SA.BI_tipo_material Btm on Btm.id = Bc.id_material_tipo
+group by Btm.descripcion, Bc.id_sucursal, Bt.cuatrimestre
 
 GO -- 9
 CREATE VIEW REJUNTE_SA.BI_porcentaje_de_cumplimiento_de_envios AS
@@ -539,7 +549,15 @@ CREATE VIEW REJUNTE_SA.BI_porcentaje_de_cumplimiento_de_envios AS
 
 GO -- 10
 CREATE VIEW REJUNTE_SA.BI_localidades_que_pagan_mayor_costo_de_envio AS
-    SELECT 1 as test
+select
+    top 3
+    Bu.localidad,
+    cast(avg(be.importe_total) as decimal(18,2)) as promedio_envio_total
+from REJUNTE_SA.BI_envio Be
+inner join REJUNTE_SA.BI_cliente Bc on Bc.id = Be.id_cliente
+inner join REJUNTE_SA.BI_ubicacion Bu on Bc.id_ubicacion = Bu.id
+group by Bu.localidad
+order by promedio_envio_total desc
 
 
 -- EXEC PROCEDURES
@@ -573,14 +591,33 @@ exec REJUNTE_SA.migrar_bi_pedido
 
 -- SELECT VIEWS
 
+-- 1
 -- select *
 -- from REJUNTE_SA.BI_ganancias Bg;
---
+-- 2
 -- select *
 -- from REJUNTE_SA.BI_factura_promedio_mensual Bfpm;
---
+-- 3
 -- select *
 -- from REJUNTE_SA.BI_rendimiento_de_modelos Brdm;
---
+-- 4
 -- select *
 -- from REJUNTE_SA.BI_volumen_pedidos Bvp;
+-- 5
+-- select *
+-- from REJUNTE_SA.BI_conversion_de_pedidos Bcdp;
+-- 6
+-- select *
+-- from REJUNTE_SA.BI_tiempo_promedio_de_fabricacion Btpdf;
+-- 7
+-- select *
+-- from REJUNTE_SA.BI_promedio_de_compras Bpdc;
+-- 8
+-- select *
+-- from REJUNTE_SA.BI_compras_por_tipo_de_material Bcptdm;
+-- 9
+-- select *
+-- from REJUNTE_SA.BI_porcentaje_de_cumplimiento_de_envios Bpdcde;
+-- 10
+-- select *
+-- from REJUNTE_SA.BI_localidades_que_pagan_mayor_costo_de_envio Blqpmcde;
