@@ -16,6 +16,7 @@ entity BI_factura <<Fact>> {
     id_tiempo : bigint
     id_cliente : bigint
     id_turno_venta : bigint
+    fecha : datetime
     cantidad : bigint
     total : decimal
 }
@@ -26,6 +27,7 @@ entity BI_pedido <<Fact>> {
     id_estado_pedido : bigint
     id_modelo : bigint
     id_turno_venta : bigint
+    fecha : datetime
     cantidad : bigint
     total : decimal
 }

@@ -5,8 +5,9 @@ CREATE TABLE REJUNTE_SA.BI_factura (
     id_tiempo BIGINT,
     id_cliente BIGINT,
     id_turno_venta BIGINT,
+    fecha DATETIME2(6),
     cantidad BIGINT,
-    total decimal (38,2)
+    total DECIMAL (38,2)
 )
 
 GO
@@ -17,8 +18,9 @@ CREATE TABLE REJUNTE_SA.BI_pedido (
     id_estado_pedido BIGINT,
     id_modelo BIGINT,
     id_turno_venta BIGINT,
+    fecha DATETIME2(6),
     cantidad BIGINT,
-    total decimal(18,2),
+    total DECIMAL(18,2),
 )
 
 GO
@@ -27,7 +29,7 @@ CREATE TABLE REJUNTE_SA.BI_compra (
     id_material_tipo BIGINT,
     id_tiempo BIGINT,
     cantidad BIGINT,
-    total decimal(38,2)
+    total DECIMAL(38,2)
 )
 
 GO
@@ -210,7 +212,7 @@ BEGIN
     SET @id_turno = (
         SELECT id
         FROM REJUNTE_SA.BI_turno_venta
-        WHERE CAST(@fecha as TIME) BETWEEN horario_inicio AND horario_fin
+        WHERE CAST(@fecha AS TIME) BETWEEN horario_inicio AND horario_fin
     )
     RETURN @id_turno
 END
@@ -235,18 +237,20 @@ END
 GO
 CREATE PROCEDURE REJUNTE_SA.migrar_bi_factura AS
 BEGIN
-    INSERT INTO REJUNTE_SA.BI_factura (id_sucursal, id_cliente, id_tiempo, id_turno_venta, cantidad, total)
+    INSERT INTO REJUNTE_SA.BI_factura (id_sucursal, id_cliente, id_tiempo, id_turno_venta, fecha, cantidad, total)
     SELECT
         F.id_sucursal,
         F.id_cliente,
         REJUNTE_SA.obtener_id_tiempo(F.fecha) AS 'id_tiempo',
         REJUNTE_SA.obtener_id_turno(F.fecha) AS 'id_turno_venta',
-        count(distinct F.id) as cantidad,
-        sum(F.total) as total
+        F.fecha,
+        COUNT(DISTINCT F.id) AS cantidad,
+        SUM(F.total) AS total
     FROM REJUNTE_SA.Factura F
-    group by
+    GROUP BY
         F.id_sucursal,
         F.id_cliente,
+        F.fecha,
         REJUNTE_SA.obtener_id_tiempo(F.fecha),
         REJUNTE_SA.obtener_id_turno(F.fecha)
 END
@@ -254,25 +258,27 @@ END
 GO
 CREATE PROCEDURE REJUNTE_SA.migrar_bi_pedido AS
 BEGIN
-    INSERT INTO REJUNTE_SA.BI_pedido(id_sucursal, id_cliente, id_tiempo, id_estado_pedido, id_modelo, id_turno_venta, cantidad, total)
+    INSERT INTO REJUNTE_SA.BI_pedido(id_sucursal, id_cliente, id_tiempo, id_estado_pedido, id_modelo, id_turno_venta, fecha, cantidad, total)
     SELECT
         p.id_sucursal,
         p.id_cliente,
-        REJUNTE_SA.obtener_id_tiempo(p.fecha) as id_tiempo,
+        REJUNTE_SA.obtener_id_tiempo(p.fecha) AS id_tiempo,
         p.id_estado_pedido,
         s.id_modelo,
-        REJUNTE_SA.obtener_id_turno(p.fecha) as id_turno_venta,
-        count(p.id) as cantidad,
-        sum(p.total) as total
+        REJUNTE_SA.obtener_id_turno(p.fecha) AS id_turno_venta,
+        P.fecha,
+        COUNT(p.id) AS cantidad,
+        SUM(p.total) AS total
     FROM REJUNTE_SA.Pedido p
-    inner join REJUNTE_SA.Detalle_Pedido DP on p.id = DP.id_pedido
-    inner join REJUNTE_SA.Sillon S on S.id = DP.id_sillon
-    group by
+    INNER JOIN REJUNTE_SA.Detalle_Pedido DP ON p.id = DP.id_pedido
+    INNER JOIN REJUNTE_SA.Sillon S ON S.id = DP.id_sillon
+    GROUP BY
         id_sucursal,
         id_cliente,
         REJUNTE_SA.obtener_id_tiempo(p.fecha),
         p.id_estado_pedido,
         s.id_modelo,
+        p.fecha,
         REJUNTE_SA.obtener_id_turno(p.fecha)
 END
 
@@ -284,31 +290,31 @@ BEGIN
         c.id_sucursal,
         M.id_material_tipo,
         REJUNTE_SA.obtener_id_tiempo(fecha) AS id_tiempo,
-        count(distinct c.id) as cantidad,
-        sum(total) as total
+        COUNT(DISTINCT c.id) AS cantidad,
+        SUM(total) AS total
     FROM REJUNTE_SA.Compra c
-    inner join REJUNTE_SA.Detalle_Compra DC on c.id = DC.id_compra
-    inner join REJUNTE_SA.Material M on DC.id_material = M.id
-    group by c.id_sucursal,  M.id_material_tipo, REJUNTE_SA.obtener_id_tiempo(fecha)
+    INNER JOIN REJUNTE_SA.Detalle_Compra DC ON c.id = DC.id_compra
+    INNER JOIN REJUNTE_SA.Material M ON DC.id_material = M.id
+    GROUP BY c.id_sucursal,  M.id_material_tipo, REJUNTE_SA.obtener_id_tiempo(fecha)
 END
 
 GO
 CREATE PROCEDURE REJUNTE_SA.migrar_bi_envio AS
 BEGIN
     INSERT INTO REJUNTE_SA.BI_envio(id_cliente, id_sucursal, fecha_programada, fecha_entrega, es_fecha_entrega, cantidad, importe_traslado, importe_subida, importe_total)
-    select
+    SELECT
         F.id_cliente,
         F.id_sucursal,
         E.fecha_programada,
         E.fecha_entrega,
         REJUNTE_SA.obtener_es_fecha_cumplida(E.fecha_programada, E.fecha_entrega) AS 'es_fecha_entrega',
-        count(E.id) as cantidad,
-        sum(E.importe_traslado) as importe_traslado,
-        sum(E.importe_subida) as importe_subida,
-        sum(E.importe_total) as importe_total
-    from REJUNTE_SA.Envio E
-    inner join REJUNTE_SA.Factura F on F.id = e.id_factura
-    group by
+        COUNT(E.id) AS cantidad,
+        SUM(E.importe_traslado) AS importe_traslado,
+        SUM(E.importe_subida) AS importe_subida,
+        SUM(E.importe_total) AS importe_total
+    FROM REJUNTE_SA.Envio E
+    INNER JOIN REJUNTE_SA.Factura F ON F.id = e.id_factura
+    GROUP BY
         F.id_cliente,
         F.id_sucursal,
         E.fecha_programada,
@@ -401,22 +407,22 @@ GO
 CREATE PROCEDURE REJUNTE_SA.migrar_bi_modelo AS
 BEGIN
    INSERT INTO REJUNTE_SA.BI_modelo(id, modelo, descripcion, precio)
-    select
+    SELECT
         M.id,
         M.modelo,
         M.descripcion,
         M.precio
-    from REJUNTE_SA.Modelo M
+    FROM REJUNTE_SA.Modelo M
 END
 
 GO
 CREATE PROCEDURE REJUNTE_SA.migrar_bi_tipo_material AS
 BEGIN
    INSERT INTO REJUNTE_SA.BI_tipo_material(id, descripcion)
-    select
+    SELECT
         MT.id,
         MT.descripcion
-    from REJUNTE_SA.Material_Tipo MT
+    FROM REJUNTE_SA.Material_Tipo MT
 END
 
 GO
@@ -446,13 +452,11 @@ SELECT
     bs.id AS Sucursal,
     bt.anio AS Anio,
     bt.mes AS Mes,
---     isnull(sum(distinct bf.total), 0) AS total_facturas,
---     isnull(sum(distinct bc.total), 0) AS total_compras,
-    isnull(sum(distinct bf.total), 0) - isnull(sum(distinct bc.total), 0) AS Ganancia
+    ISNULL(SUM(DISTINCT bf.total), 0) - ISNULL(SUM(DISTINCT bc.total), 0) AS Ganancia
 FROM REJUNTE_SA.BI_factura Bf
-FULL JOIN REJUNTE_SA.BI_compra Bc on bc.id_sucursal = bf.id_sucursal and bc.id_tiempo = bf.id_tiempo
-INNER JOIN REJUNTE_SA.BI_sucursal Bs on Bs.id = bf.id_sucursal
-INNER JOIN REJUNTE_SA.BI_tiempo Bt on Bt.id = bf.id_tiempo
+FULL JOIN REJUNTE_SA.BI_compra Bc ON bc.id_sucursal = bf.id_sucursal AND bc.id_tiempo = bf.id_tiempo
+INNER JOIN REJUNTE_SA.BI_sucursal Bs ON Bs.id = bf.id_sucursal
+INNER JOIN REJUNTE_SA.BI_tiempo Bt ON Bt.id = bf.id_tiempo
 GROUP BY bt.anio, bt.mes, bs.id
 
 GO -- 2
@@ -461,7 +465,7 @@ SELECT
     bt.anio,
     bt.cuatrimestre,
     bu.provincia,
-    isnull(avg(bf.total), 0) AS factura_promedio_mensual
+    ISNULL(AVG(bf.total), 0) AS factura_promedio_mensual
 FROM REJUNTE_SA.BI_factura Bf
 INNER JOIN REJUNTE_SA.BI_sucursal Bs ON Bf.id_sucursal = Bs.id
 INNER JOIN REJUNTE_SA.BI_ubicacion Bu ON Bu.id = Bs.id_ubicacion
@@ -477,19 +481,19 @@ WITH Rendimiento_Modelos AS (
         bu.id,
         bu.localidad,
         BP.id_modelo,
-        concat(bre.edad_minima,'-', bre.edad_maxima) as rango_etario,
+        CONCAT(bre.edad_minima,'-', bre.edad_maxima) AS rango_etario,
         ROW_NUMBER() OVER (
                 PARTITION BY bt.anio, bt.cuatrimestre, bu.id, bu.localidad, bre.id, bre.edad_maxima, bre.edad_minima
                 ORDER BY SUM(BP.total) DESC
             ) AS ranking,
-        sum(BP.total) as total
+        SUM(BP.total) AS total
     FROM REJUNTE_SA.BI_pedido Bp
-    inner join REJUNTE_SA.BI_tiempo Bt on Bp.id_tiempo = Bt.id
-    inner join REJUNTE_SA.BI_sucursal Bs on Bp.id_sucursal = Bs.id
-    inner join REJUNTE_SA.BI_ubicacion Bu on Bu.id = Bs.id_ubicacion
-    inner join REJUNTE_SA.BI_cliente Bc on Bp.id_cliente = Bc.id
-    inner join REJUNTE_SA.BI_rango_etario Bre on Bc.id_rango_etario = Bre.id
-    group by bt.anio, bt.cuatrimestre, bu.id, bu.localidad, bre.id, bre.edad_maxima, bre.edad_minima, BP.id_modelo
+    INNER JOIN REJUNTE_SA.BI_tiempo Bt ON Bp.id_tiempo = Bt.id
+    INNER JOIN REJUNTE_SA.BI_sucursal Bs ON Bp.id_sucursal = Bs.id
+    INNER JOIN REJUNTE_SA.BI_ubicacion Bu ON Bu.id = Bs.id_ubicacion
+    INNER JOIN REJUNTE_SA.BI_cliente Bc ON Bp.id_cliente = Bc.id
+    INNER JOIN REJUNTE_SA.BI_rango_etario Bre ON Bc.id_rango_etario = Bre.id
+    GROUP BY bt.anio, bt.cuatrimestre, bu.id, bu.localidad, bre.id, bre.edad_maxima, bre.edad_minima, BP.id_modelo
 )
 SELECT
     RM.anio,
@@ -504,7 +508,7 @@ WHERE RM.ranking <= 3
 GO -- 4
 CREATE VIEW REJUNTE_SA.BI_volumen_pedidos AS
 SELECT
-    s.id as 'sucursal',
+    s.id AS 'sucursal',
     t.anio,
     t.mes,
     tv.horario_inicio AS 'horario inicio turno',
@@ -521,15 +525,26 @@ GROUP BY s.id, t.anio, t.mes, tv.id, tv.horario_inicio, tv.horario_fin
 
 GO -- 5
 CREATE VIEW REJUNTE_SA.BI_conversion_de_pedidos AS
-    SELECT 1 as test
+    SELECT 1 AS test
 
-GO -- 6 PENDIENTE
+GO -- 6
 CREATE VIEW REJUNTE_SA.BI_tiempo_promedio_de_fabricacion AS
-    SELECT 1 as test
+SELECT
+    Bp.id_sucursal,
+    bt.cuatrimestre,
+    AVG(DATEDIFF(DAY, bp.fecha, bf.fecha)) AS dias_fabricacion
+FROM REJUNTE_SA.BI_pedido Bp
+INNER JOIN REJUNTE_SA.BI_factura Bf
+    ON Bp.id_sucursal = Bf.id_sucursal
+           AND bp.id_cliente = bf.id_cliente
+           AND bp.id_tiempo = bf.id_tiempo
+INNER JOIN REJUNTE_SA.BI_tiempo Bt
+    ON Bp.id_tiempo = Bt.id
+GROUP BY Bp.id_sucursal, bt.cuatrimestre
 
 GO -- 7
 CREATE VIEW REJUNTE_SA.BI_promedio_de_compras AS
-    SELECT 1 as test
+    SELECT 1 AS test
 
 GO -- 8
 CREATE VIEW REJUNTE_SA.BI_compras_por_tipo_de_material AS
@@ -537,27 +552,27 @@ SELECT
     Btm.descripcion,
     Bc.id_sucursal,
     Bt.cuatrimestre,
-    sum(Bc.total) as total
+    SUM(Bc.total) AS total
 FROM REJUNTE_SA.BI_compra Bc
-INNER JOIN REJUNTE_SA.BI_tiempo Bt on Bt.id = Bc.id_tiempo
-inner join REJUNTE_SA.BI_tipo_material Btm on Btm.id = Bc.id_material_tipo
-group by Btm.descripcion, Bc.id_sucursal, Bt.cuatrimestre
+INNER JOIN REJUNTE_SA.BI_tiempo Bt ON Bt.id = Bc.id_tiempo
+INNER JOIN REJUNTE_SA.BI_tipo_material Btm ON Btm.id = Bc.id_material_tipo
+GROUP BY Btm.descripcion, Bc.id_sucursal, Bt.cuatrimestre
 
 GO -- 9
 CREATE VIEW REJUNTE_SA.BI_porcentaje_de_cumplimiento_de_envios AS
-    SELECT 1 as test
+    SELECT 1 AS test
 
 GO -- 10
 CREATE VIEW REJUNTE_SA.BI_localidades_que_pagan_mayor_costo_de_envio AS
-select
+SELECT
     top 3
     Bu.localidad,
-    cast(avg(be.importe_total) as decimal(18,2)) as promedio_envio_total
-from REJUNTE_SA.BI_envio Be
-inner join REJUNTE_SA.BI_cliente Bc on Bc.id = Be.id_cliente
-inner join REJUNTE_SA.BI_ubicacion Bu on Bc.id_ubicacion = Bu.id
-group by Bu.localidad
-order by promedio_envio_total desc
+    CAST(AVG(be.importe_total) AS decimal(18,2)) AS promedio_envio_total
+FROM REJUNTE_SA.BI_envio Be
+INNER JOIN REJUNTE_SA.BI_cliente Bc ON Bc.id = Be.id_cliente
+INNER JOIN REJUNTE_SA.BI_ubicacion Bu ON Bc.id_ubicacion = Bu.id
+GROUP BY Bu.localidad
+ORDER BY promedio_envio_total DESC
 
 
 -- EXEC PROCEDURES
@@ -592,32 +607,32 @@ exec REJUNTE_SA.migrar_bi_pedido
 -- SELECT VIEWS
 
 -- 1
--- select *
--- from REJUNTE_SA.BI_ganancias Bg;
+-- SELECT *
+-- FROM REJUNTE_SA.BI_ganancias Bg;
 -- 2
--- select *
--- from REJUNTE_SA.BI_factura_promedio_mensual Bfpm;
+-- SELECT *
+-- FROM REJUNTE_SA.BI_factura_promedio_mensual Bfpm;
 -- 3
--- select *
--- from REJUNTE_SA.BI_rendimiento_de_modelos Brdm;
+-- SELECT *
+-- FROM REJUNTE_SA.BI_rendimiento_de_modelos Brdm;
 -- 4
--- select *
--- from REJUNTE_SA.BI_volumen_pedidos Bvp;
+-- SELECT *
+-- FROM REJUNTE_SA.BI_volumen_pedidos Bvp;
 -- 5
--- select *
--- from REJUNTE_SA.BI_conversion_de_pedidos Bcdp;
+-- SELECT *
+-- FROM REJUNTE_SA.BI_conversion_de_pedidos Bcdp;
 -- 6
--- select *
--- from REJUNTE_SA.BI_tiempo_promedio_de_fabricacion Btpdf;
+-- SELECT *
+-- FROM REJUNTE_SA.BI_tiempo_promedio_de_fabricacion Btpdf;
 -- 7
--- select *
--- from REJUNTE_SA.BI_promedio_de_compras Bpdc;
+-- SELECT *
+-- FROM REJUNTE_SA.BI_promedio_de_compras Bpdc;
 -- 8
--- select *
--- from REJUNTE_SA.BI_compras_por_tipo_de_material Bcptdm;
+-- SELECT *
+-- FROM REJUNTE_SA.BI_compras_por_tipo_de_material Bcptdm;
 -- 9
--- select *
--- from REJUNTE_SA.BI_porcentaje_de_cumplimiento_de_envios Bpdcde;
+-- SELECT *
+-- FROM REJUNTE_SA.BI_porcentaje_de_cumplimiento_de_envios Bpdcde;
 -- 10
--- select *
--- from REJUNTE_SA.BI_localidades_que_pagan_mayor_costo_de_envio Blqpmcde;
+-- SELECT *
+-- FROM REJUNTE_SA.BI_localidades_que_pagan_mayor_costo_de_envio Blqpmcde;
