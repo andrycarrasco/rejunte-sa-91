@@ -534,35 +534,25 @@ SELECT
     t.cuatrimestre,
     ep.descripcion AS 'Estado pedido',
     CAST (
-        (COUNT(*) * 100.00) / (totales.total_pedidos) AS decimal(18, 2)
+        (COUNT(*) * 100.00) / (
+		  SELECT COUNT(*) FROM REJUNTE_SA.BI_pedido  p1
+		  JOIN REJUNTE_SA.BI_tiempo t1
+		  ON t1.id = p1.id_tiempo
+		  WHERE id_sucursal = p.id_sucursal 
+		  AND t1.id = t.id AND t1.cuatrimestre = t.cuatrimestre
+		  GROUP BY t1.id, t1.cuatrimestre, p1.id_sucursal
+		) AS decimal(18, 2)
     ) AS 'Porcentaje de pedidos sobre los pedidos hechos en el periodo'
 FROM
     REJUNTE_SA.BI_pedido p
     JOIN REJUNTE_SA.BI_tiempo t ON p.id_tiempo = t.id
     JOIN REJUNTE_SA.BI_estado_pedido ep ON p.id_estado_pedido = ep.id
-    JOIN (
-        SELECT
-            p.id_sucursal,
-            t.anio,
-            t.cuatrimestre,
-            COUNT(*) AS total_pedidos
-        FROM
-            REJUNTE_SA.BI_pedido p
-            JOIN REJUNTE_SA.BI_tiempo t ON p.id_tiempo = t.id
-        GROUP BY
-            p.id_sucursal,
-            t.anio,
-            t.cuatrimestre
-    ) totales ON p.id_sucursal = totales.id_sucursal
-    AND t.anio = totales.anio
-    AND t.cuatrimestre = totales.cuatrimestre
 GROUP BY
     p.id_sucursal,
-    t.anio,
+	t.id,
+	t.anio,
     t.cuatrimestre,
-    ep.id,
-    ep.descripcion,
-    totales.total_pedidos
+    ep.descripcion
 
 GO -- 6
 CREATE VIEW REJUNTE_SA.BI_tiempo_promedio_de_fabricacion AS
