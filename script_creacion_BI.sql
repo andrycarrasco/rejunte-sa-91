@@ -539,8 +539,8 @@ SELECT
 		  JOIN REJUNTE_SA.BI_tiempo t1
 		  ON t1.id = p1.id_tiempo
 		  WHERE id_sucursal = p.id_sucursal 
-		  AND t1.id = t.id AND t1.cuatrimestre = t.cuatrimestre
-		  GROUP BY t1.id, t1.cuatrimestre, p1.id_sucursal
+		  AND t1.id = t.id
+		  GROUP BY t1.id, p1.id_sucursal
 		) AS decimal(18, 2)
     ) AS 'Porcentaje de pedidos sobre los pedidos hechos en el periodo'
 FROM
