@@ -107,11 +107,11 @@ Para correr el archivo **.puml**, deben tener instalado:
 - [x] 3-Rendimiento de modelos
 - [X] 4-Volumen de pedidos
 - [ ] 5-Conversion de pedidos
-- [ ] 6-Tiempo promedio de fabricación
+- [x] 6-Tiempo promedio de fabricación
 - [ ] 7-Promedio de Compras
-- [ ] 8-Compras por Tipo de Material
+- [x] 8-Compras por Tipo de Material
 - [ ] 9-Porcentaje de cumpliento de envíos
-- [ ] 10-Localidades que pagan mayor costo de envío
+- [x] 10-Localidades que pagan mayor costo de envío
 
 ## Base de datos (LISTO)
 
