@@ -457,7 +457,7 @@ CREATE VIEW REJUNTE_SA.BI_promedio_de_compras AS
 SELECT
     t.anio,
     t.mes,
-    CAST(SUM(c.total) / COUNT(*) AS decimal(18, 2)) AS 'Promedio de compras por mes'
+    CAST(AVG(c.total) AS decimal(18, 2)) AS 'Promedio de compras por mes'
 FROM
     REJUNTE_SA.BI_compra c
     JOIN REJUNTE_SA.BI_tiempo t ON c.id_tiempo = t.id
@@ -474,9 +474,7 @@ CREATE VIEW REJUNTE_SA.BI_porcentaje_de_cumplimiento_de_envios AS
 SELECT 
 t.anio,
 t.mes,
-CAST( SUM(CASE WHEN (e.fecha_programada = e.fecha_entrega) THEN 1 ELSE 0
-END) * 100.0 / COUNT(*) AS decimal(18,2)) 
-AS 'Porcentaje de envios cumplidos'
+cast(sum(cast(e.es_fecha_entrega as int)) * 100.00 / count(*) as decimal(9,2)) as 'Porcentaje de envios cumplidos'
 FROM REJUNTE_SA.BI_envio e
 INNER JOIN REJUNTE_SA.BI_tiempo t 
 ON YEAR(e.fecha_programada) = t.anio AND MONTH(e.fecha_programada) = t.mes
