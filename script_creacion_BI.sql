@@ -536,27 +536,16 @@ SELECT
 	round(( select isnull(cast(sum(p.cantidad) * 100.00 / 
 	sum(bp2.cantidad) as decimal(9,2)), 0.00) from REJUNTE_SA.BI_pedido Bp2 
 	inner join REJUNTE_SA.BI_tiempo Bt2 on Bp2.id_tiempo = Bt2.id 
-	where Bp2.id_sucursal = s.id and bt2.id = t.id), 2), '%'
+	where Bp2.id_sucursal = s.id and bt2.cuatrimestre = t.cuatrimestre and bt2.anio = t.anio), 2), '%'
     ) as porcentaje
 FROM
 	REJUNTE_SA.BI_sucursal s
 	JOIN REJUNTE_SA.BI_pedido p ON p.id_sucursal = s.id
     JOIN REJUNTE_SA.BI_tiempo t ON p.id_tiempo = t.id
     JOIN REJUNTE_SA.BI_estado_pedido ep ON p.id_estado_pedido = ep.id
-GROUP BY
-    s.id,
-	p.id_sucursal,
-	t.id,
-	t.anio,
-    t.cuatrimestre,
-    ep.descripcion
-ORDER BY 
-	s.id,
-	p.id_sucursal,
-	t.id,
-	t.anio,
-    t.cuatrimestre,
-    ep.descripcion
+    GROUP BY s.id, t.anio, t.cuatrimestre, ep.descripcion 
+    ORDER BY s.id, t.anio, t.cuatrimestre, ep.descripcion
+
 	
 GO -- 6
 CREATE VIEW REJUNTE_SA.BI_tiempo_promedio_de_fabricacion AS
