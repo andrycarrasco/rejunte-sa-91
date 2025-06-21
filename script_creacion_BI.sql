@@ -525,10 +525,28 @@ INNER JOIN REJUNTE_SA.BI_turno_venta tv
     ON tv.id = p.id_turno_venta
 GROUP BY s.id, t.anio, t.mes, tv.id, tv.horario_inicio, tv.horario_fin
 
-GO -- 5
-CREATE VIEW REJUNTE_SA.BI_conversion_de_pedidos AS
-    SELECT 1 AS test
 
+GO -- 5
+SELECT
+    s.id AS id_sucursal,
+    t.anio,
+    t.cuatrimestre,
+    ep.descripcion AS 'Estado pedido',
+    concat(
+	round(( select isnull(cast(sum(p.cantidad) * 100.00 / 
+	sum(bp2.cantidad) as decimal(9,2)), 0.00) from REJUNTE_SA.BI_pedido Bp2 
+	inner join REJUNTE_SA.BI_tiempo Bt2 on Bp2.id_tiempo = Bt2.id 
+	where Bp2.id_sucursal = s.id and bt2.cuatrimestre = t.cuatrimestre and bt2.anio = t.anio), 2), '%'
+    ) as porcentaje
+FROM
+	REJUNTE_SA.BI_sucursal s
+	JOIN REJUNTE_SA.BI_pedido p ON p.id_sucursal = s.id
+    JOIN REJUNTE_SA.BI_tiempo t ON p.id_tiempo = t.id
+    JOIN REJUNTE_SA.BI_estado_pedido ep ON p.id_estado_pedido = ep.id
+    GROUP BY s.id, t.anio, t.cuatrimestre, ep.descripcion 
+    ORDER BY s.id, t.anio, t.cuatrimestre, ep.descripcion
+
+	
 GO -- 6
 CREATE VIEW REJUNTE_SA.BI_tiempo_promedio_de_fabricacion AS
 SELECT
@@ -546,7 +564,16 @@ GROUP BY Bp.id_sucursal, bt.cuatrimestre
 
 GO -- 7
 CREATE VIEW REJUNTE_SA.BI_promedio_de_compras AS
-    SELECT 1 AS test
+SELECT
+    t.anio,
+    t.mes,
+    CAST(AVG(c.total) AS decimal(18, 2)) AS 'Promedio de compras por mes'
+FROM
+    REJUNTE_SA.BI_compra c
+    JOIN REJUNTE_SA.BI_tiempo t ON c.id_tiempo = t.id
+GROUP BY
+    t.anio,
+    t.mes
 
 GO -- 8
 CREATE VIEW REJUNTE_SA.BI_compras_por_tipo_de_material AS
