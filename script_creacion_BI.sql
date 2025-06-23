@@ -589,8 +589,16 @@ GROUP BY Btm.descripcion, Bc.id_sucursal, Bt.cuatrimestre
 
 GO -- 9
 CREATE VIEW REJUNTE_SA.BI_porcentaje_de_cumplimiento_de_envios AS
-    SELECT 1 AS test
-
+    SELECT 1 as test
+SELECT 
+t.anio,
+t.mes,
+cast(sum(cast(e.es_fecha_entrega as int)) * 100.00 / count(*) as decimal(9,2)) as 'Porcentaje de envios cumplidos'
+FROM REJUNTE_SA.BI_envio e
+INNER JOIN REJUNTE_SA.BI_tiempo t 
+ON YEAR(e.fecha_programada) = t.anio AND MONTH(e.fecha_programada) = t.mes
+GROUP BY t.id, t.anio, t.mes
+	
 GO -- 10
 CREATE VIEW REJUNTE_SA.BI_localidades_que_pagan_mayor_costo_de_envio AS
 SELECT
