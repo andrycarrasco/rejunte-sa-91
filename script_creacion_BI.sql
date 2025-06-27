@@ -442,7 +442,6 @@ GO -- 1
 CREATE VIEW REJUNTE_SA.BI_ganancias AS
 SELECT
     bs.id AS Sucursal,
---     bt.anio AS Anio,
     bt.mes AS Mes,
     ISNULL(SUM(DISTINCT bf.total), 0) - ISNULL(SUM(DISTINCT bc.total), 0) AS Ganancia
 FROM REJUNTE_SA.BI_factura Bf
@@ -450,7 +449,6 @@ FULL JOIN REJUNTE_SA.BI_compra Bc ON bc.id_sucursal = bf.id_sucursal AND bc.id_t
 INNER JOIN REJUNTE_SA.BI_sucursal Bs ON Bs.id = bf.id_sucursal
 INNER JOIN REJUNTE_SA.BI_tiempo Bt ON Bt.id = bf.id_tiempo
 GROUP BY
---     bt.anio,
     bt.mes,
     bs.id
 
@@ -521,7 +519,6 @@ GO -- 5
 CREATE VIEW REJUNTE_SA.BI_conversion_de_pedidos AS
 SELECT
     s.id AS id_sucursal,
---     t.anio,
     t.cuatrimestre,
     ep.descripcion AS 'Estado pedido',
     concat(
@@ -537,7 +534,6 @@ FROM
     JOIN REJUNTE_SA.BI_estado_pedido ep ON p.id_estado_pedido = ep.id
     GROUP BY
         s.id,
---         t.anio,
         t.cuatrimestre,
         ep.descripcion
 	
@@ -559,15 +555,12 @@ GROUP BY Bp.id_sucursal, bt.cuatrimestre
 GO -- 7
 CREATE VIEW REJUNTE_SA.BI_promedio_de_compras AS
 SELECT
---     t.anio,
     t.mes,
     CAST(AVG(c.total) AS decimal(18, 2)) AS 'Promedio de compras por mes'
 FROM
     REJUNTE_SA.BI_compra c
     JOIN REJUNTE_SA.BI_tiempo t ON c.id_tiempo = t.id
-GROUP BY
---     t.anio,
-    t.mes
+GROUP BY t.mes
 
 GO -- 8
 CREATE VIEW REJUNTE_SA.BI_compras_por_tipo_de_material AS
@@ -586,18 +579,13 @@ GROUP BY
 
 GO -- 9
 CREATE VIEW REJUNTE_SA.BI_porcentaje_de_cumplimiento_de_envios AS
-SELECT 
---     t.anio,
+SELECT
     t.mes,
     cast(sum(cast(e.es_fecha_entrega as int)) * 100.00 / count(*) as decimal(9,2)) as 'Porcentaje de envios cumplidos'
 FROM REJUNTE_SA.BI_envio e
 INNER JOIN REJUNTE_SA.BI_tiempo t 
-    ON
-        MONTH(e.fecha_programada) = t.mes
---         AND YEAR(e.fecha_programada) = t.anio
-GROUP BY
---     t.anio,
-    t.mes
+    ON MONTH(e.fecha_programada) = t.mes
+GROUP BY t.mes
 	
 GO -- 10
 CREATE VIEW REJUNTE_SA.BI_localidades_que_pagan_mayor_costo_de_envio AS
