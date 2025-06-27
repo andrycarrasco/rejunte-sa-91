@@ -521,12 +521,13 @@ SELECT
     s.id AS id_sucursal,
     t.cuatrimestre,
     ep.descripcion AS 'Estado pedido',
-    concat(
-	round(( select isnull(cast(sum(p.cantidad) * 100.00 / 
-	sum(bp2.cantidad) as decimal(9,2)), 0.00) from REJUNTE_SA.BI_pedido Bp2 
-	inner join REJUNTE_SA.BI_tiempo Bt2 on Bp2.id_tiempo = Bt2.id 
-	where Bp2.id_sucursal = s.id and bt2.cuatrimestre = t.cuatrimestre and bt2.anio = t.anio), 2), '%'
-    ) as porcentaje
+    CONCAT(ROUND((
+        SELECT
+            ISNULL(CAST(SUM(p.cantidad) * 100.00 / SUM(bp2.cantidad) AS DECIMAL(9,2)), 0.00)
+        FROM REJUNTE_SA.BI_pedido Bp2
+        INNER JOIN REJUNTE_SA.BI_tiempo Bt2 ON Bp2.id_tiempo = Bt2.id
+        WHERE Bp2.id_sucursal = s.id AND bt2.cuatrimestre = t.cuatrimestre
+    ), 2), '%') AS porcentaje
 FROM
 	REJUNTE_SA.BI_sucursal s
 	JOIN REJUNTE_SA.BI_pedido p ON p.id_sucursal = s.id
@@ -542,7 +543,7 @@ CREATE VIEW REJUNTE_SA.BI_tiempo_promedio_de_fabricacion AS
 SELECT
     Bp.id_sucursal,
     bt.cuatrimestre,
-    AVG(DATEDIFF(DAY, bp.fecha, bf.fecha)) AS dias_fabricacion
+    AVG(DATEDIFF(DAY, bp.fecha, bf.fecha)) AS promedio_fabricacion_dias
 FROM REJUNTE_SA.BI_pedido Bp
 INNER JOIN REJUNTE_SA.BI_factura Bf
     ON Bp.id_sucursal = Bf.id_sucursal
@@ -565,7 +566,7 @@ GROUP BY t.mes
 GO -- 8
 CREATE VIEW REJUNTE_SA.BI_compras_por_tipo_de_material AS
 SELECT
-    Btm.descripcion,
+    Btm.descripcion as tipo_material,
     Bc.id_sucursal,
     Bt.cuatrimestre,
     SUM(Bc.total) AS total
@@ -600,6 +601,7 @@ WITH RankingLocalidadesPorPromedioDeImporteDeEnvio AS (
     GROUP BY Bu.localidad
 )
 SELECT
+    ranking,
     localidad,
     promedio_envio_total
 FROM RankingLocalidadesPorPromedioDeImporteDeEnvio
@@ -638,32 +640,32 @@ exec REJUNTE_SA.migrar_bi_pedido
 -- SELECT VIEWS
 
 -- 1
-SELECT *
-FROM REJUNTE_SA.BI_ganancias Bg;
+-- SELECT *
+-- FROM REJUNTE_SA.BI_ganancias Bg;
 -- 2
-SELECT *
-FROM REJUNTE_SA.BI_factura_promedio_mensual Bfpm;
+-- SELECT *
+-- FROM REJUNTE_SA.BI_factura_promedio_mensual Bfpm;
 -- 3
-SELECT *
-FROM REJUNTE_SA.BI_rendimiento_de_modelos Brdm;
+-- SELECT *
+-- FROM REJUNTE_SA.BI_rendimiento_de_modelos Brdm;
 -- 4
-SELECT *
-FROM REJUNTE_SA.BI_volumen_pedidos Bvp;
+-- SELECT *
+-- FROM REJUNTE_SA.BI_volumen_pedidos Bvp;
 -- 5
-SELECT *
-FROM REJUNTE_SA.BI_conversion_de_pedidos Bcdp;
+-- SELECT *
+-- FROM REJUNTE_SA.BI_conversion_de_pedidos Bcdp;
 -- 6
-SELECT *
-FROM REJUNTE_SA.BI_tiempo_promedio_de_fabricacion Btpdf;
+-- SELECT *
+-- FROM REJUNTE_SA.BI_tiempo_promedio_de_fabricacion Btpdf;
 -- 7
-SELECT *
-FROM REJUNTE_SA.BI_promedio_de_compras Bpdc;
+-- SELECT *
+-- FROM REJUNTE_SA.BI_promedio_de_compras Bpdc;
 -- 8
-SELECT *
-FROM REJUNTE_SA.BI_compras_por_tipo_de_material Bcptdm;
+-- SELECT *
+-- FROM REJUNTE_SA.BI_compras_por_tipo_de_material Bcptdm;
 -- 9
-SELECT *
-FROM REJUNTE_SA.BI_porcentaje_de_cumplimiento_de_envios Bpdcde;
+-- SELECT *
+-- FROM REJUNTE_SA.BI_porcentaje_de_cumplimiento_de_envios Bpdcde;
 -- 10
-SELECT *
-FROM REJUNTE_SA.BI_localidades_que_pagan_mayor_costo_de_envio Blqpmcde;
+-- SELECT *
+-- FROM REJUNTE_SA.BI_localidades_que_pagan_mayor_costo_de_envio Blqpmcde;
