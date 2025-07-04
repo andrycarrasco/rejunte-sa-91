@@ -468,7 +468,7 @@ GROUP BY bt.anio, bt.cuatrimestre, bu.provincia
 GO -- 3
 CREATE VIEW REJUNTE_SA.BI_rendimiento_de_modelos AS
 SELECT
-    distinct Bt.anio,
+    Bt.anio,
     Bt.cuatrimestre,
     Bu.localidad,
     CONCAT(Bre.edad_minima, '-', Bre.edad_maxima) AS rango_etario,
