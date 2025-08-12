@@ -467,34 +467,42 @@ GROUP BY bt.anio, bt.cuatrimestre, bu.provincia
 
 GO -- 3
 CREATE VIEW REJUNTE_SA.BI_rendimiento_de_modelos AS
-WITH Rendimiento_Modelos AS (
-    SELECT
-        bt.anio,
-        bt.cuatrimestre,
-        bu.id,
-        bu.localidad,
-        BP.id_modelo,
-        CONCAT(bre.edad_minima,'-', bre.edad_maxima) AS rango_etario,
-        ROW_NUMBER() OVER (
-                PARTITION BY bt.anio, bt.cuatrimestre, bu.id, bu.localidad, bre.id, bre.edad_maxima, bre.edad_minima
-                ORDER BY SUM(BP.total) DESC
-            ) AS ranking
-    FROM REJUNTE_SA.BI_pedido Bp
-    INNER JOIN REJUNTE_SA.BI_tiempo Bt ON Bp.id_tiempo = Bt.id
-    INNER JOIN REJUNTE_SA.BI_sucursal Bs ON Bp.id_sucursal = Bs.id
-    INNER JOIN REJUNTE_SA.BI_ubicacion Bu ON Bu.id = Bs.id_ubicacion
-    INNER JOIN REJUNTE_SA.BI_cliente Bc ON Bp.id_cliente = Bc.id
-    INNER JOIN REJUNTE_SA.BI_rango_etario Bre ON Bc.id_rango_etario = Bre.id
-    GROUP BY bt.anio, bt.cuatrimestre, bu.id, bu.localidad, bre.id, bre.edad_maxima, bre.edad_minima, BP.id_modelo
-)
 SELECT
-    RM.anio,
-    RM.cuatrimestre,
-    RM.localidad,
-    RM.rango_etario,
-    RM.id_modelo
-FROM Rendimiento_Modelos RM
-WHERE RM.ranking <= 3
+    Bt.anio,
+    Bt.cuatrimestre,
+    Bu.localidad,
+    CONCAT(Bre.edad_minima, '-', Bre.edad_maxima) AS rango_etario,
+    Bp.id_modelo
+FROM REJUNTE_SA.BI_pedido Bp
+INNER JOIN REJUNTE_SA.BI_tiempo Bt ON Bp.id_tiempo = Bt.id
+INNER JOIN REJUNTE_SA.BI_sucursal Bs ON Bp.id_sucursal = Bs.id
+INNER JOIN REJUNTE_SA.BI_ubicacion Bu ON Bu.id = Bs.id_ubicacion
+INNER JOIN REJUNTE_SA.BI_cliente Bc ON Bp.id_cliente = Bc.id
+INNER JOIN REJUNTE_SA.BI_rango_etario Bre ON Bc.id_rango_etario = Bre.id
+WHERE Bp.id_modelo IN (
+    SELECT TOP 3 Bp2.id_modelo
+    FROM REJUNTE_SA.BI_pedido Bp2
+    INNER JOIN REJUNTE_SA.BI_tiempo Bt2 ON Bp2.id_tiempo = Bt2.id
+    INNER JOIN REJUNTE_SA.BI_sucursal Bs2 ON Bp2.id_sucursal = Bs2.id
+    INNER JOIN REJUNTE_SA.BI_ubicacion Bu2 ON Bu2.id = Bs2.id_ubicacion
+    INNER JOIN REJUNTE_SA.BI_cliente Bc2 ON Bp2.id_cliente = Bc2.id
+    INNER JOIN REJUNTE_SA.BI_rango_etario Bre2 ON Bc2.id_rango_etario = Bre2.id
+    WHERE
+        Bt2.anio = Bt.anio AND
+        Bt2.cuatrimestre = Bt.cuatrimestre AND
+        Bu2.localidad = Bu.localidad AND
+        Bre2.edad_minima = Bre.edad_minima AND
+        Bre2.edad_maxima = Bre.edad_maxima
+    GROUP BY Bp2.id_modelo
+    ORDER BY SUM(Bp2.total) DESC
+)
+GROUP BY
+    Bt.anio,
+    Bt.cuatrimestre,
+    Bu.localidad,
+    Bre.edad_minima,
+    Bre.edad_maxima,
+    Bp.id_modelo
 
 GO -- 4
 CREATE VIEW REJUNTE_SA.BI_volumen_pedidos AS
@@ -590,22 +598,24 @@ GROUP BY t.mes
 	
 GO -- 10
 CREATE VIEW REJUNTE_SA.BI_localidades_que_pagan_mayor_costo_de_envio AS
-WITH RankingLocalidadesPorPromedioDeImporteDeEnvio AS (
-    SELECT
-        Bu.localidad,
-        CAST(AVG(Be.importe_total) AS decimal(18,2)) AS promedio_envio_total,
-        ROW_NUMBER() OVER (ORDER BY AVG(Be.importe_total) DESC) AS ranking
-    FROM REJUNTE_SA.BI_envio Be
-    INNER JOIN REJUNTE_SA.BI_cliente Bc ON Bc.id = Be.id_cliente
-    INNER JOIN REJUNTE_SA.BI_ubicacion Bu ON Bc.id_ubicacion = Bu.id
-    GROUP BY Bu.localidad
-)
 SELECT
-    ranking,
-    localidad,
-    promedio_envio_total
-FROM RankingLocalidadesPorPromedioDeImporteDeEnvio
-WHERE ranking <= 3;
+    Bu.localidad,
+    CAST(AVG(Be.importe_total) AS decimal(18,2)) AS promedio_envio_total
+FROM REJUNTE_SA.BI_envio Be
+INNER JOIN REJUNTE_SA.BI_cliente Bc ON Bc.id = Be.id_cliente
+INNER JOIN REJUNTE_SA.BI_ubicacion Bu ON Bc.id_ubicacion = Bu.id
+WHERE
+    Bu.localidad IN (
+         SELECT
+            TOP 3
+            Bu.localidad
+        FROM REJUNTE_SA.BI_envio Be
+        INNER JOIN REJUNTE_SA.BI_cliente Bc ON Bc.id = Be.id_cliente
+        INNER JOIN REJUNTE_SA.BI_ubicacion Bu ON Bc.id_ubicacion = Bu.id
+        GROUP BY Bu.localidad
+        ORDER BY AVG(Be.importe_total) DESC
+    )
+GROUP BY Bu.localidad
 
 
 -- EXEC PROCEDURES
